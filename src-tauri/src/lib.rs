@@ -1,8 +1,8 @@
 // IntelliWork — AI-Powered Work Intelligence Assistant
 // Module declarations and Tauri app initialization
 
-// Core modules (will be implemented in subsequent phases)
-// mod storage;    // Phase 2: Encrypted SQLite storage layer
+// Core modules
+mod storage;      // Phase 2: Encrypted SQLite storage layer
 // mod platform;   // Phase 3: Platform abstraction (macOS/Windows/Linux)
 // mod tracker;    // Phase 4: Activity tracking engine
 // mod ai;         // Phase 5: AI classification & summarization
