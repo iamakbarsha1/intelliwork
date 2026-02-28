@@ -45,6 +45,14 @@ env_logger = "0.11"
 # HTTP client (for AI API calls)
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
 
+# macOS platform APIs
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.10"
+core-graphics = "0.24"
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSObject", "NSRunLoop", "NSObjCRuntime"] }
+objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSRunningApplication", "NSApplication"] }
+
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
