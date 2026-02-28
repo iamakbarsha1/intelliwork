@@ -3,7 +3,7 @@
 
 // Core modules
 mod storage;      // Phase 2: Encrypted SQLite storage layer
-// mod platform;   // Phase 3: Platform abstraction (macOS/Windows/Linux)
+mod platform;     // Phase 3: Platform abstraction (macOS/Windows/Linux)
 // mod tracker;    // Phase 4: Activity tracking engine
 // mod ai;         // Phase 5: AI classification & summarization
 // mod commands;   // Phase 4: Tauri IPC command handlers
