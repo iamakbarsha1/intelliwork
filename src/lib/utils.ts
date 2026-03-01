@@ -78,8 +78,8 @@ export function getCategoryColor(category: string): string {
     Meetings: "hsl(150, 65%, 45%)",
     Design: "hsl(320, 70%, 55%)",
     Productivity: "hsl(200, 80%, 50%)",
-    Entertainment: "hsl(0, 75%, 55%)",
-    Uncategorized: "hsl(220, 10%, 55%)",
+    Entertainment: "hsl(0, 75%, 65%)",
+    Uncategorized: "hsl(220, 10%, 75%)",
   };
   return colors[category] ?? colors.Uncategorized;
 }
