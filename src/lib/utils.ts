@@ -64,3 +64,22 @@ export function calculatePercentage(value: number, total: number): number {
   if (total <= 0) return 0;
   return Math.round((value / total) * 100);
 }
+
+/**
+ * Get a consistent color for a category.
+ * @param category - Activity category name
+ * @returns HSL color string
+ */
+export function getCategoryColor(category: string): string {
+  const colors: Record<string, string> = {
+    Development: "hsl(220, 90%, 56%)",
+    Research: "hsl(260, 70%, 58%)",
+    Communication: "hsl(35, 90%, 55%)",
+    Meetings: "hsl(150, 65%, 45%)",
+    Design: "hsl(320, 70%, 55%)",
+    Productivity: "hsl(200, 80%, 50%)",
+    Entertainment: "hsl(0, 75%, 55%)",
+    Uncategorized: "hsl(220, 10%, 55%)",
+  };
+  return colors[category] ?? colors.Uncategorized;
+}
