@@ -1,8 +1,5 @@
-/**
- * DailySummary — Overview card with today's stats.
- */
-
-import { type ActivityLog } from "../hooks/useTauri";
+import { useState, useEffect } from "react";
+import { type ActivityLog, useAISummary, type DailySummaryRecord } from "../hooks/useTauri";
 import { formatDuration } from "../lib/utils";
 
 interface DailySummaryProps {
@@ -11,6 +8,10 @@ interface DailySummaryProps {
 }
 
 export function DailySummary({ activities, date }: DailySummaryProps) {
+  const { summary, loading: summaryLoading, saveSummary } = useAISummary(date);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState("");
+
   const totalSeconds = activities.reduce((sum, a) => sum + a.duration_seconds, 0);
   const productiveSeconds = activities
     .filter((a) => !a.is_idle && a.category !== "Entertainment")
@@ -24,12 +25,95 @@ export function DailySummary({ activities, date }: DailySummaryProps) {
   const productivityRate =
     totalSeconds > 0 ? Math.round((productiveSeconds / totalSeconds) * 100) : 0;
 
+  useEffect(() => {
+    if (summary) {
+      setEditValue(summary.edited_summary || summary.raw_summary);
+    }
+  }, [summary]);
+
+  const handleSave = async () => {
+    if (!summary) return;
+    
+    try {
+      const updated: DailySummaryRecord = {
+        ...summary,
+        edited_summary: editValue,
+        is_approved: true
+      };
+      await saveSummary(updated);
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Failed to save summary:", err);
+      alert("Failed to save summary");
+    }
+  };
+
   return (
     <div className="daily-summary card" data-testid="daily-summary">
-      <div className="daily-summary__header">
-        <h3>📅 Daily Summary</h3>
-        <span className="text-secondary">{date}</span>
+      <div className="daily-summary__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+          <h3 style={{ margin: 0 }}>📅 Daily Summary</h3>
+          <span className="text-secondary">{date}</span>
+        </div>
+        
+        {summary && !isEditing && (
+          <button 
+            className="btn btn--secondary" 
+            style={{ padding: "var(--space-1) var(--space-3)", fontSize: "var(--font-size-sm)" }}
+            onClick={() => setIsEditing(true)}
+          >
+            ✏️ Edit
+          </button>
+        )}
       </div>
+
+      {summary && (
+        <div className="daily-summary__ai-content" style={{ margin: "var(--space-4) 0", padding: "var(--space-3)", background: "var(--color-surface-elevated)", borderRadius: "var(--radius-md)" }}>
+          {isEditing ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+              <textarea 
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                style={{ 
+                  width: "100%", 
+                  minHeight: "150px", 
+                  padding: "var(--space-2)",
+                  background: "var(--color-bg)",
+                  color: "var(--color-text)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-sm)",
+                  fontFamily: "var(--font-family-mono)",
+                  fontSize: "var(--font-size-sm)"
+                }}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-2)" }}>
+                <button 
+                  className="btn btn--secondary" 
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditValue(summary.edited_summary || summary.raw_summary);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button className="btn btn--primary" onClick={handleSave}>
+                  Save Summary
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ whiteSpace: "pre-wrap", fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)" }}>
+              {summary.edited_summary || summary.raw_summary}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!summary && !summaryLoading && (
+         <div style={{ margin: "var(--space-4) 0", color: "var(--color-text-tertiary)", fontSize: "var(--font-size-sm)", fontStyle: "italic" }}>
+           AI Summary hasn't been generated for this date yet.
+         </div>
+      )}
 
       <div className="daily-summary__stats">
         <StatCard

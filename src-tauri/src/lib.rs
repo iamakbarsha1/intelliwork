@@ -93,6 +93,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(app_state)
         .setup(|app| {
             tray::setup_tray(app)?;
@@ -121,11 +122,13 @@ pub fn run() {
             commands::poll_tracker,
             commands::get_activities,
             commands::get_summary,
+            commands::upsert_summary,
             commands::get_config,
             commands::set_config,
             commands::get_all_config,
             commands::delete_activities,
             commands::flush_tracker,
+            commands::export_csv,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
