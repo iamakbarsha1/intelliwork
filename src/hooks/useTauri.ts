@@ -152,12 +152,8 @@ export function useConfig() {
   }, []);
 
   const updateConfig = useCallback(async (key: string, value: string) => {
-    try {
-      await invoke("set_config", { key, value });
-      setConfig((prev) => ({ ...prev, [key]: value }));
-    } catch (err) {
-      throw err;
-    }
+    await invoke("set_config", { key, value });
+    setConfig((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   useEffect(() => {
@@ -197,12 +193,8 @@ export function useAISummary(date: string) {
   }, [date]);
 
   const saveSummary = useCallback(async (newSummary: DailySummaryRecord) => {
-    try {
-      await invoke("upsert_summary", { summary: newSummary });
-      await refresh();
-    } catch (err) {
-      throw err;
-    }
+    await invoke("upsert_summary", { summary: newSummary });
+    await refresh();
   }, [refresh]);
 
   useEffect(() => {
