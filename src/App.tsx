@@ -6,6 +6,8 @@ import { ActivityTimeline } from "./components/ActivityTimeline";
 import { CategoryChart } from "./components/CategoryChart";
 import { DailySummary } from "./components/DailySummary";
 import { SettingsPanel } from "./components/SettingsPanel";
+import { ConsentScreen } from "./components/ConsentScreen";
+import { SetupWizard } from "./components/SetupWizard";
 import { useTracking, useActivities, useConfig } from "./hooks/useTauri";
 
 import type { AppInfo } from "./lib/types";
@@ -14,8 +16,9 @@ import { getTodayDate } from "./lib/utils";
 
 import "./styles/globals.css";
 import "./styles/dashboard.css";
+import "./styles/consent.css";
 
-type View = "dashboard" | "settings";
+type View = "dashboard" | "settings" | "consent" | "setup";
 
 /**
  * Root application component.
@@ -34,7 +37,14 @@ function App() {
   const today = getTodayDate();
   const tracking = useTracking();
   const { activities, loading: activitiesLoading, refresh: refreshActivities } = useActivities(today);
-  const { config, updateConfig } = useConfig();
+  const { config, loading: configLoading, updateConfig } = useConfig();
+
+  // Redirect to onboarding if needed
+  useEffect(() => {
+    if (!configLoading && config.onboarding_completed !== "true") {
+      setView((prev) => (prev === "dashboard" || prev === "settings" ? "consent" : prev));
+    }
+  }, [configLoading, config.onboarding_completed]);
 
   // Fetch app info
   const fetchAppInfo = useCallback(async () => {
@@ -133,6 +143,25 @@ function App() {
         </>
       ) : (
         <SettingsPanel config={config} onUpdate={updateConfig} />
+      )}
+
+      {/* Onboarding Overlays */}
+      {!configLoading && config.onboarding_completed !== "true" && (
+        view === "consent" ? (
+          <ConsentScreen
+            onAccept={() => setView("setup")}
+            onDecline={() => invoke("plugin:process|exit", { code: 0 }).catch(() => window.close())}
+          />
+        ) : view === "setup" ? (
+          <SetupWizard
+            config={config}
+            onUpdateConfig={updateConfig}
+            onComplete={async () => {
+              await updateConfig("onboarding_completed", "true");
+              setView("dashboard");
+            }}
+          />
+        ) : null
       )}
     </main>
   );

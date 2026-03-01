@@ -14,6 +14,8 @@ use crate::tracker::idle::{IdleDetector, IdleState};
 use crate::tracker::meeting::{MeetingDetector, MeetingInfo};
 use crate::tracker::scheduler::OfficeHoursManager;
 
+use tauri::Emitter;
+
 use serde::{Deserialize, Serialize};
 
 /// Tracking state visible to the frontend.
@@ -64,6 +66,8 @@ pub struct ActivityTracker {
     pending_activities: Vec<ActivityLog>,
     /// Pending meeting logs waiting to be flushed
     pending_meetings: Vec<MeetingLog>,
+    /// Tauri AppHandle for emitting events
+    app_handle: Option<tauri::AppHandle>,
 }
 
 impl ActivityTracker {
@@ -85,13 +89,22 @@ impl ActivityTracker {
             last_app_name: None,
             pending_activities: Vec::new(),
             pending_meetings: Vec::new(),
+            app_handle: None,
         }
+    }
+
+    /// Set the Tauri app handle for emitting events.
+    pub fn set_app_handle(&mut self, handle: tauri::AppHandle) {
+        self.app_handle = Some(handle);
     }
 
     /// Start tracking.
     pub fn start(&mut self) {
         self.tracking_enabled = true;
         log::info!("Tracking started");
+        if let Some(app) = &self.app_handle {
+            let _ = app.emit("tracking_state_changed", self.get_state());
+        }
     }
 
     /// Stop tracking and flush any pending data.
@@ -102,6 +115,9 @@ impl ActivityTracker {
             log::error!("Error flushing on stop: {}", e);
         }
         log::info!("Tracking stopped");
+        if let Some(app) = &self.app_handle {
+            let _ = app.emit("tracking_state_changed", self.get_state());
+        }
     }
 
     /// Main poll function — called every 5 seconds by the app loop.
@@ -128,6 +144,8 @@ impl ActivityTracker {
             .map_err(|e| format!("Platform error: {}", e))?;
 
         // Check idle state
+        let prev_idle = self.get_state().is_idle;
+        
         let (idle_state, _idle_seconds) = self
             .idle_detector
             .check(self.platform.as_ref())
@@ -151,11 +169,26 @@ impl ActivityTracker {
             activity.is_idle = is_idle;
         }
 
+        if prev_idle != is_idle {
+            if let Some(app) = &self.app_handle {
+                let _ = app.emit(if is_idle { "idle_started" } else { "idle_ended" }, self.get_state());
+            }
+        }
+
+        let prev_meeting = self.current_activity.as_ref().map(|a| a.is_meeting).unwrap_or(false);
+
         // Check for meetings
         let meeting_info = self.meeting_detector.check(&app_info);
         if meeting_info.is_in_meeting {
             if let Some(ref mut activity) = self.current_activity {
                 activity.is_meeting = true;
+            }
+        }
+        
+        let curr_meeting = self.current_activity.as_ref().map(|a| a.is_meeting).unwrap_or(false);
+        if prev_meeting != curr_meeting {
+            if let Some(app) = &self.app_handle {
+                let _ = app.emit(if curr_meeting { "meeting_started" } else { "meeting_ended" }, self.get_state());
             }
         }
 
@@ -183,6 +216,10 @@ impl ActivityTracker {
         );
 
         self.current_activity = Some(activity);
+
+        if let Some(app) = &self.app_handle {
+            let _ = app.emit("activity_changed", self.get_state());
+        }
 
         // If this is a meeting app, also create a meeting log
         let meeting_info = self.meeting_detector.check(app_info);
