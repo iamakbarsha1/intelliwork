@@ -7,7 +7,7 @@ mod platform;     // Phase 3: Platform abstraction (macOS/Windows/Linux)
 mod tracker;      // Phase 4: Activity tracking engine
 mod commands;     // Phase 4: Tauri IPC command handlers
 mod state;        // Phase 4: Application state management
-// mod ai;         // Phase 5: AI classification & summarization
+mod ai;         // Phase 5: AI classification & summarization
 // mod tray;       // Phase 7: System tray integration
 
 use std::sync::{Arc, Mutex};
