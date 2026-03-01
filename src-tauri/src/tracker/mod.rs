@@ -9,6 +9,6 @@ pub mod meeting;
 pub mod scheduler;
 
 pub use activity::{ActivityTracker, TrackingState};
-pub use idle::{IdleDetector, IdleState};
-pub use meeting::{MeetingDetector, MeetingInfo};
+pub use idle::IdleState;
+pub use meeting::MeetingInfo;
 pub use scheduler::{OfficeHoursConfig, OfficeHoursManager};

@@ -78,6 +78,18 @@ pub fn get_summary(
         .map_err(|e| format!("DB error: {}", e))
 }
 
+/// Upsert a daily summary (used for editing).
+#[tauri::command]
+pub fn upsert_summary(
+    state: State<'_, AppState>,
+    summary: crate::storage::DailySummaryRecord,
+) -> Result<(), String> {
+    state
+        .db
+        .upsert_summary(&summary)
+        .map_err(|e| format!("DB error: {}", e))
+}
+
 /// Get a configuration value.
 #[tauri::command]
 pub fn get_config(
@@ -135,4 +147,49 @@ pub fn flush_tracker(state: State<'_, AppState>) -> Result<usize, String> {
         .map_err(|e| format!("Lock error: {}", e))?;
 
     tracker.flush()
+}
+
+/// Export activities for a given date to CSV.
+#[tauri::command]
+pub fn export_csv(
+    state: State<'_, AppState>,
+    date: String,
+    path: String,
+) -> Result<(), String> {
+    // Force a flush before exporting to ensure we have the latest data
+    if let Ok(mut tracker) = state.tracker.lock() {
+        let _ = tracker.flush();
+    }
+
+    let activities = state
+        .db
+        .get_activities_for_date(&date)
+        .map_err(|e| format!("DB error: {}", e))?;
+
+    let mut wtr = csv::Writer::from_path(&path)
+        .map_err(|e| format!("Failed to create CSV writer: {}", e))?;
+
+    // Write header
+    wtr.write_record(&["Date", "Category", "App Name", "Window Title", "Start Time", "End Time", "Duration (s)", "Meeting"])
+        .map_err(|e| format!("Failed to write CSV header: {}", e))?;
+
+    // Write data
+    for act in activities {
+        let duration_str = act.duration_seconds.to_string();
+        wtr.write_record(&[
+            date.as_str(),
+            act.category.as_str(),
+            act.app_name.as_str(),
+            act.window_title.as_deref().unwrap_or(""),
+            act.start_time.as_str(),
+            act.end_time.as_deref().unwrap_or(""),
+            duration_str.as_str(),
+            if act.is_meeting { "Yes" } else { "No" },
+        ])
+        .map_err(|e| format!("Failed to write CSV record: {}", e))?;
+    }
+
+    wtr.flush().map_err(|e| format!("Failed to flush CSV: {}", e))?;
+
+    Ok(())
 }

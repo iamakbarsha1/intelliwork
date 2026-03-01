@@ -29,7 +29,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     // You can customize icon based on theme or tracking state. By default we use app's default icon.
     // If you have `icons/icon.ico` configured in tauri.conf.json, Tauri loads it automatically.
     
-    let tray = TrayIconBuilder::new()
+    let _tray = TrayIconBuilder::new()
         .menu(&menu)
         .menu_on_left_click(false)
         .on_menu_event(|app_handle, event| {

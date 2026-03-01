@@ -4,7 +4,7 @@
 // Rules are checked first (fast, offline). If no match, the
 // hybrid classifier can optionally call an LLM API.
 
-use super::errors::AiError;
+use std::collections::HashMap;
 use super::rules::{default_rules, ClassificationRule, MatchTarget};
 
 use serde::{Deserialize, Serialize};
