@@ -133,14 +133,14 @@ function App() {
       {view === "dashboard" ? (
           <div className="dashboard-grid">
             {/* Left Column: Summary + Daily Stats */}
-            <div className="dashboard-column styled-scroll">
+            <div className="dashboard-column">
               <ExportPanel date={today} />
               <DailySummary date={today} activities={activities} />
               <CategoryChart activities={activities} />
             </div>
 
             {/* Right Column: Timeline */}
-            <div className="dashboard-column styled-scroll">
+            <div className="dashboard-column">
               <ActivityTimeline 
                 activities={activities} 
                 loading={activitiesLoading} 
