@@ -72,14 +72,14 @@ export function calculatePercentage(value: number, total: number): number {
  */
 export function getCategoryColor(category: string): string {
   const colors: Record<string, string> = {
-    Development: "hsl(220, 90%, 56%)",
-    Research: "hsl(260, 70%, 58%)",
-    Communication: "hsl(35, 90%, 55%)",
-    Meetings: "hsl(150, 65%, 45%)",
-    Design: "hsl(320, 70%, 55%)",
-    Productivity: "hsl(200, 80%, 50%)",
-    Entertainment: "hsl(0, 75%, 65%)",
-    Uncategorized: "hsl(220, 10%, 75%)",
+    Development: "#2F73F6",
+    Research: "#7845F0",
+    Communication: "#F59E1A",
+    Meetings: "#28BC6F",
+    Design: "#DE31AD",
+    Productivity: "#199BE6",
+    Entertainment: "#EE5C5C",
+    Uncategorized: "#B5BAC5",
   };
   return colors[category] ?? colors.Uncategorized;
 }
