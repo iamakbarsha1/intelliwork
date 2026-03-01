@@ -4,6 +4,7 @@
 
 import { type ActivityLog } from "../hooks/useTauri";
 import { formatDuration, getCategoryColor } from "../lib/utils";
+import { PieChart } from "lucide-react";
 
 interface CategoryChartProps {
   activities: ActivityLog[];
@@ -38,7 +39,7 @@ export function CategoryChart({ activities }: CategoryChartProps) {
   return (
     <div className="category-chart card" data-testid="category-chart">
       <div className="category-chart__header">
-        <h3>📊 Category Breakdown</h3>
+        <h3 style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}><PieChart size={20} /> Category Breakdown</h3>
         <span className="text-secondary">{formatDuration(totalSeconds)} total</span>
       </div>
 

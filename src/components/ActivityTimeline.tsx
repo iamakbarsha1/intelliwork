@@ -57,7 +57,6 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }:
             <ActivityCard 
               key={activity.id} 
               activity={activity} 
-              index={index} 
               onDelete={onDelete ? () => onDelete(activity.id) : undefined}
             />
           ))}
@@ -69,17 +68,15 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }:
 
 interface ActivityCardProps {
   activity: ActivityLog;
-  index: number;
   onDelete?: () => void;
 }
 
-function ActivityCard({ activity, index, onDelete }: ActivityCardProps) {
+function ActivityCard({ activity, onDelete }: ActivityCardProps) {
   const categoryColor = getCategoryColor(activity.category);
 
   return (
     <div
-      className="activity-card animate-fade-in"
-      style={{ animationDelay: `${index * 50}ms` }}
+      className="activity-card"
       data-testid={`activity-card-${activity.id}`}
     >
       <div

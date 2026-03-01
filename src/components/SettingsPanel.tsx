@@ -3,6 +3,7 @@
  */
 
 import { useState } from "react";
+import { Settings } from "lucide-react";
 
 interface SettingsPanelProps {
   config: Record<string, string>;
@@ -32,7 +33,7 @@ export function SettingsPanel({ config, onUpdate }: SettingsPanelProps) {
 
   return (
     <div className="settings card" data-testid="settings-panel">
-      <h3>⚙️ Settings</h3>
+      <h3 style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", margin: 0, paddingBottom: "var(--space-4)" }}><Settings size={20} /> Settings</h3>
 
       <div className="settings__group">
         <h4>Tracking</h4>

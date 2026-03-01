@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SettingsPanel } from "./SettingsPanel";
+import { PartyPopper } from "lucide-react";
 
 interface SetupWizardProps {
   config: Record<string, string>;
@@ -57,7 +58,9 @@ export function SetupWizard({ config, onUpdateConfig, onComplete }: SetupWizardP
 
           {step === 2 && (
             <div className="animate-slide-in text-center">
-              <div className="onboarding-icon">🎉</div>
+              <div className="onboarding-icon" style={{ display: "flex", justifyContent: "center", marginBottom: "var(--space-4)" }}>
+                <PartyPopper size={48} color="var(--color-primary)" />
+              </div>
               <h3>You're All Set!</h3>
               <p className="text-secondary" style={{ marginTop: "1rem" }}>
                 IntelliWork is ready. Your tracking toggle is currently set to:{" "}

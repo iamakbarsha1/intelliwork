@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Shield, Monitor, Bot, Settings } from "lucide-react";
 
 interface ConsentScreenProps {
   onAccept: () => void;
@@ -12,14 +13,16 @@ export function ConsentScreen({ onAccept, onDecline }: ConsentScreenProps) {
     <div className="onboarding-overlay">
       <div className="onboarding-card animate-fade-in text-center">
         <div className="onboarding-header">
-          <div className="onboarding-icon">🔒</div>
+          <div className="onboarding-icon" style={{ display: "flex", justifyContent: "center", marginBottom: "var(--space-4)" }}>
+            <Shield size={48} color="var(--color-primary)" />
+          </div>
           <h1 className="onboarding-title">Privacy & Data Security</h1>
           <p className="onboarding-subtitle">How IntelliWork handles your data.</p>
         </div>
 
         <div className="consent-sections text-left">
           <div className="consent-section">
-            <span className="consent-section__icon">💻</span>
+            <span className="consent-section__icon" style={{ display: "flex", alignItems: "center" }}><Monitor size={24} color="var(--color-primary)" /></span>
             <div className="consent-section__content">
               <span className="consent-section__title">Local Storage Only</span>
               <span className="text-secondary text-sm">
@@ -29,7 +32,7 @@ export function ConsentScreen({ onAccept, onDecline }: ConsentScreenProps) {
           </div>
 
           <div className="consent-section">
-            <span className="consent-section__icon">🤖</span>
+            <span className="consent-section__icon" style={{ display: "flex", alignItems: "center" }}><Bot size={24} color="var(--color-primary)" /></span>
             <div className="consent-section__content">
               <span className="consent-section__title">AI Analysis & Anonymization</span>
               <span className="text-secondary text-sm">
@@ -39,7 +42,7 @@ export function ConsentScreen({ onAccept, onDecline }: ConsentScreenProps) {
           </div>
 
           <div className="consent-section">
-            <span className="consent-section__icon">⚙️</span>
+            <span className="consent-section__icon" style={{ display: "flex", alignItems: "center" }}><Settings size={24} color="var(--color-primary)" /></span>
             <div className="consent-section__content">
               <span className="consent-section__title">OS Permissions Needed</span>
               <span className="text-secondary text-sm">
