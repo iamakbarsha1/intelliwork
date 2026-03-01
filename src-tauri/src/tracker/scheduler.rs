@@ -17,7 +17,7 @@ pub struct OfficeHoursConfig {
 impl Default for OfficeHoursConfig {
     fn default() -> Self {
         Self {
-            enabled: true,
+            enabled: false,
             start_time: "09:00".to_string(),
             end_time: "18:00".to_string(),
         }
@@ -170,7 +170,7 @@ mod tests {
     #[test]
     fn test_default_config() {
         let config = OfficeHoursConfig::default();
-        assert!(config.enabled);
+        assert!(!config.enabled);
         assert_eq!(config.start_time, "09:00");
         assert_eq!(config.end_time, "18:00");
     }

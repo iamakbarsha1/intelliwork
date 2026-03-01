@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Zap, LayoutDashboard, Settings, Sun, Moon, AlertTriangle } from "lucide-react";
+import { Zap, LayoutDashboard, Settings, Sun, Moon, AlertTriangle, Activity } from "lucide-react";
 
 import { TrackingToggle } from "./components/TrackingToggle";
 import { ActivityTimeline } from "./components/ActivityTimeline";
@@ -10,6 +10,7 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { ConsentScreen } from "./components/ConsentScreen";
 import { SetupWizard } from "./components/SetupWizard";
 import { ExportPanel } from "./components/ExportPanel";
+import { LiveView } from "./components/LiveView";
 import { useTracking, useActivities, useConfig } from "./hooks/useTauri";
 
 import type { AppInfo } from "./lib/types";
@@ -20,7 +21,7 @@ import "./styles/globals.css";
 import "./styles/dashboard.css";
 import "./styles/consent.css";
 
-type View = "dashboard" | "settings" | "consent" | "setup";
+type View = "dashboard" | "settings" | "consent" | "setup" | "live";
 
 /**
  * Root application component.
@@ -29,7 +30,7 @@ type View = "dashboard" | "settings" | "consent" | "setup";
  * daily summary, tracking toggle, and settings panel.
  */
 function App() {
-  const [view, setView] = useState<View>("dashboard");
+  const [view, setView] = useState<View>("live");
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(() => {
@@ -44,7 +45,7 @@ function App() {
   // Redirect to onboarding if needed
   useEffect(() => {
     if (!configLoading && config.onboarding_completed !== "true") {
-      setView((prev) => (prev === "dashboard" || prev === "settings" ? "consent" : prev));
+      setView((prev) => (prev === "dashboard" || prev === "settings" || prev === "live" ? "consent" : prev));
     }
   }, [configLoading, config.onboarding_completed]);
 
@@ -92,6 +93,12 @@ function App() {
         </div>
         <div className="dashboard__nav">
           <button
+            className={`dashboard__nav-btn ${view === "live" ? "dashboard__nav-btn--active" : ""}`}
+            onClick={() => setView("live")}
+          >
+            <Activity size={18} /> Live Activity
+          </button>
+          <button
             className={`dashboard__nav-btn ${view === "dashboard" ? "dashboard__nav-btn--active" : ""}`}
             onClick={() => setView("dashboard")}
           >
@@ -129,7 +136,11 @@ function App() {
         onStop={tracking.stopTracking}
       />
 
-      {/* Main Content */}
+      {/* Main Content Area */}
+      {view === "live" && tracking.state && (
+        <LiveView activities={activities} tracking={tracking.state} />
+      )}
+
       {view === "dashboard" ? (
           <div className="dashboard-grid">
             {/* Left Column: Summary + Daily Stats */}

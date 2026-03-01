@@ -75,7 +75,7 @@ export function SettingsPanel({ config, onUpdate }: SettingsPanelProps) {
           <Toggle
             checked={config.office_hours_enabled === "true"}
             onChange={() =>
-              handleToggle("office_hours_enabled", config.office_hours_enabled ?? "true")
+              handleToggle("office_hours_enabled", config.office_hours_enabled ?? "false")
             }
             disabled={saving === "office_hours_enabled"}
           />

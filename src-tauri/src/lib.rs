@@ -53,7 +53,7 @@ pub fn run() {
         .ok()
         .flatten()
         .map(|v| v == "true")
-        .unwrap_or(true);
+        .unwrap_or(false);
 
     let office_start = db
         .get_config("office_hours_start")
