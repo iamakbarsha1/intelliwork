@@ -67,7 +67,14 @@ function App() {
   // Auto-refresh activities when tracking polls
   useEffect(() => {
     if (tracking.state?.is_tracking) {
-      const interval = setInterval(refreshActivities, 30000);
+      const interval = setInterval(async () => {
+        try {
+          await invoke("flush_tracker");
+        } catch (e) {
+          console.error("Failed to flush activities", e);
+        }
+        refreshActivities();
+      }, 30000);
       return () => clearInterval(interval);
     }
   }, [tracking.state?.is_tracking, refreshActivities]);
