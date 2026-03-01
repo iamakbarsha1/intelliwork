@@ -170,13 +170,22 @@ pub fn export_csv(
         .map_err(|e| format!("Failed to create CSV writer: {}", e))?;
 
     // Write header
-    wtr.write_record(&["Date", "Category", "App Name", "Window Title", "Start Time", "End Time", "Duration (s)", "Meeting"])
-        .map_err(|e| format!("Failed to write CSV header: {}", e))?;
+    wtr.write_record([
+        "Date",
+        "Category",
+        "App Name",
+        "Window Title",
+        "Start Time",
+        "End Time",
+        "Duration (s)",
+        "Meeting",
+    ])
+    .map_err(|e| format!("Failed to write CSV header: {}", e))?;
 
     // Write data
     for act in activities {
         let duration_str = act.duration_seconds.to_string();
-        wtr.write_record(&[
+        wtr.write_record([
             date.as_str(),
             act.category.as_str(),
             act.app_name.as_str(),

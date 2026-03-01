@@ -3,6 +3,8 @@
 // Provides activity classification (rule-based + LLM hybrid),
 // data anonymization, and daily summary generation.
 
+#![allow(dead_code)]
+
 pub mod anonymizer;
 pub mod classifier;
 pub mod errors;

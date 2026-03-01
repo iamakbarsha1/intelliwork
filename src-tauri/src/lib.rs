@@ -106,13 +106,12 @@ pub fn run() {
             
             Ok(())
         })
-        .on_window_event(|window, event| match event {
-            tauri::WindowEvent::CloseRequested { api, .. } => {
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 // Prevent window from closing, just hide it so background tracking continues
                 api.prevent_close();
                 let _ = window.hide();
             }
-            _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             get_app_info,

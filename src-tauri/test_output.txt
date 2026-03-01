@@ -1,0 +1,7 @@
+   Compiling objc2-foundation v0.3.2
+   Compiling tauri-utils v2.8.2
+   Compiling objc2-core-data v0.3.2
+   Compiling objc2-quartz-core v0.3.2
+   Compiling objc2-cloud-kit v0.3.2
+   Compiling objc2-core-image v0.3.2
+   Compiling objc2-app-kit v0.3.2

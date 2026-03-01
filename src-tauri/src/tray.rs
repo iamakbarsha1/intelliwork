@@ -39,9 +39,9 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                     let mut tracker = state.tracker.lock().unwrap();
                     let is_tracking = tracker.get_state().is_tracking;
                     if is_tracking {
-                        let _ = tracker.stop();
+                        tracker.stop();
                     } else {
-                        let _ = tracker.start();
+                        tracker.start();
                     }
                     // Optional: emit event or update tray tooltip
                     let new_state = tracker.get_state();

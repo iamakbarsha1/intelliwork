@@ -76,13 +76,12 @@ impl RuleBasedClassifier {
                 }
             };
 
-            if matched {
-                if best_match
+            if matched
+                && best_match
                     .map(|b| rule.confidence > b.confidence)
                     .unwrap_or(true)
-                {
-                    best_match = Some(rule);
-                }
+            {
+                best_match = Some(rule);
             }
         }
 
