@@ -322,4 +322,43 @@ impl ActivityTracker {
     pub fn is_tracking(&self) -> bool {
         self.tracking_enabled
     }
+
+    /// Reload configurations from the database dynamically
+    pub fn reload_config(&mut self) -> Result<(), String> {
+        let idle_threshold: f64 = self.db
+            .get_config("idle_threshold_seconds")
+            .ok()
+            .flatten()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(180.0);
+
+        self.idle_detector.set_threshold(idle_threshold);
+
+        let enabled: bool = self.db
+            .get_config("office_hours_enabled")
+            .ok()
+            .flatten()
+            .map(|v| v == "true")
+            .unwrap_or(false);
+
+        let start = self.db
+            .get_config("office_hours_start")
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| "09:00".to_string());
+
+        let end = self.db
+            .get_config("office_hours_end")
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| "18:00".to_string());
+
+        self.scheduler.update_config(crate::tracker::scheduler::OfficeHoursConfig {
+            enabled,
+            start_time: start,
+            end_time: end,
+        });
+
+        Ok(())
+    }
 }

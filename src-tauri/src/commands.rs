@@ -112,7 +112,14 @@ pub fn set_config(
     state
         .db
         .set_config(&key, &value)
-        .map_err(|e| format!("DB error: {}", e))
+        .map_err(|e| format!("DB error: {}", e))?;
+
+    if key.starts_with("office_hours_") || key == "idle_threshold" || key == "idle_threshold_seconds" {
+        let mut tracker = state.tracker.lock().map_err(|e| format!("Lock error: {}", e))?;
+        tracker.reload_config()?;
+    }
+
+    Ok(())
 }
 
 /// Get all configuration values.
