@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
+import { Download, FileText } from "lucide-react";
 
 interface ExportPanelProps {
   date: string;
@@ -68,7 +69,7 @@ export function ExportPanel({ date }: ExportPanelProps) {
           onClick={handleExportCsv}
           disabled={exportingCsv || exportingPdf}
         >
-          {exportingCsv ? "Exporting..." : "↓ Export CSV"}
+          {exportingCsv ? <><Download size={16} /> Exporting...</> : <><Download size={16} /> Export CSV</>}
         </button>
         
         <button 
@@ -76,7 +77,7 @@ export function ExportPanel({ date }: ExportPanelProps) {
           onClick={handleExportPdf}
           disabled={exportingCsv || exportingPdf}
         >
-          {exportingPdf ? "Preparing..." : "📄 Print / PDF"}
+          {exportingPdf ? <><FileText size={16} /> Preparing...</> : <><FileText size={16} /> Print / PDF</>}
         </button>
       </div>
     </div>

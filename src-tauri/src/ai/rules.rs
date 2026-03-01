@@ -41,6 +41,7 @@ pub fn default_rules() -> Vec<ClassificationRule> {
         rule("WebStorm", MatchTarget::AppName, "Development", 0.95),
         rule("PyCharm", MatchTarget::AppName, "Development", 0.95),
         rule("Android Studio", MatchTarget::AppName, "Development", 0.95),
+        rule("Antigravity", MatchTarget::AppName, "Development", 0.95),
         rule("Xcode", MatchTarget::AppName, "Development", 0.95),
         rule("Sublime Text", MatchTarget::AppName, "Development", 0.90),
         rule("Atom", MatchTarget::AppName, "Development", 0.85),

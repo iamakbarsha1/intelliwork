@@ -1,8 +1,8 @@
 /**
  * Application-wide constants.
  */
-
 import type { Category } from "./types";
+import { Terminal, Lightbulb, MessageSquare, Calendar, ClipboardList, FileText, Palette, BarChart, HelpCircle } from "lucide-react";
 
 /** Colors for each activity category */
 export const CATEGORY_COLORS: Record<Category, string> = {
@@ -17,17 +17,17 @@ export const CATEGORY_COLORS: Record<Category, string> = {
   Uncategorized: "hsl(0, 0%, 55%)",
 };
 
-/** Icons for each category (emoji shorthand) */
-export const CATEGORY_ICONS: Record<Category, string> = {
-  Development: "💻",
-  Research: "🔍",
-  Communication: "💬",
-  Meetings: "📅",
-  Administration: "📋",
-  Documentation: "📝",
-  Design: "🎨",
-  "Project Management": "📊",
-  Uncategorized: "❓",
+/** Icons for each category */
+export const CATEGORY_ICONS: Record<Category, React.ElementType> = {
+  Development: Terminal,
+  Research: Lightbulb,
+  Communication: MessageSquare,
+  Meetings: Calendar,
+  Administration: ClipboardList,
+  Documentation: FileText,
+  Design: Palette,
+  "Project Management": BarChart,
+  Uncategorized: HelpCircle,
 };
 
 /** Application metadata */

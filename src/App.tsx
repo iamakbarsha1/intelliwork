@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { Zap, LayoutDashboard, Settings, Sun, Moon, AlertTriangle } from "lucide-react";
 
 import { TrackingToggle } from "./components/TrackingToggle";
 import { ActivityTimeline } from "./components/ActivityTimeline";
@@ -83,7 +84,7 @@ function App() {
       {/* Header */}
       <div className="dashboard__header animate-fade-in">
         <div className="dashboard__brand">
-          <span className="dashboard__logo">⚡</span>
+          <Zap className="dashboard__logo" size={24} color="var(--color-primary)" />
           <span className="dashboard__title">{APP_NAME}</span>
           {appInfo && (
             <span className="badge badge--neutral">v{appInfo.version}</span>
@@ -94,20 +95,20 @@ function App() {
             className={`dashboard__nav-btn ${view === "dashboard" ? "dashboard__nav-btn--active" : ""}`}
             onClick={() => setView("dashboard")}
           >
-            📊 Dashboard
+            <LayoutDashboard size={18} /> Dashboard
           </button>
           <button
             className={`dashboard__nav-btn ${view === "settings" ? "dashboard__nav-btn--active" : ""}`}
             onClick={() => setView("settings")}
           >
-            ⚙️ Settings
+            <Settings size={18} /> Settings
           </button>
           <button
             className="dashboard__nav-btn"
             onClick={() => setDarkMode(!darkMode)}
             title={darkMode ? "Light mode" : "Dark mode"}
           >
-            {darkMode ? "☀️" : "🌙"}
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
       </div>
@@ -115,8 +116,8 @@ function App() {
       {/* Error Banner */}
       {(error || tracking.error) && (
         <div className="card" style={{ gridColumn: "1 / -1", borderColor: "var(--color-danger)" }}>
-          <span className="text-danger">
-            ⚠ {error || tracking.error}
+          <span className="text-danger" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <AlertTriangle size={18} /> {error || tracking.error}
           </span>
         </div>
       )}

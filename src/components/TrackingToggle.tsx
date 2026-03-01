@@ -4,6 +4,7 @@
 
 import { type TrackingState } from "../hooks/useTauri";
 import { formatDuration } from "../lib/utils";
+import { Play, Square } from "lucide-react";
 
 interface TrackingToggleProps {
   state: TrackingState | null;
@@ -54,7 +55,7 @@ export function TrackingToggle({ state, onStart, onStop }: TrackingToggleProps) 
           onClick={isTracking ? onStop : onStart}
           data-testid="tracking-toggle-btn"
         >
-          {isTracking ? "⏹ Stop" : "▶ Start"}
+          {isTracking ? <><Square size={16} /> Stop</> : <><Play size={16} /> Start</>}
         </button>
       </div>
     </div>

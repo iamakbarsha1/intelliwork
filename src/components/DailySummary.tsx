@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { type ActivityLog, useAISummary, type DailySummaryRecord } from "../hooks/useTauri";
 import { formatDuration } from "../lib/utils";
+import { Calendar, Edit2, Clock, Target, Users, Monitor } from "lucide-react";
 
 interface DailySummaryProps {
   activities: ActivityLog[];
@@ -52,7 +53,7 @@ export function DailySummary({ activities, date }: DailySummaryProps) {
     <div className="daily-summary card" data-testid="daily-summary">
       <div className="daily-summary__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-          <h3 style={{ margin: 0 }}>📅 Daily Summary</h3>
+          <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "var(--space-2)" }}><Calendar size={20} /> Daily Summary</h3>
           <span className="text-secondary">{date}</span>
         </div>
         
@@ -62,7 +63,7 @@ export function DailySummary({ activities, date }: DailySummaryProps) {
             style={{ padding: "var(--space-1) var(--space-3)", fontSize: "var(--font-size-sm)" }}
             onClick={() => setIsEditing(true)}
           >
-            ✏️ Edit
+            <Edit2 size={14} /> Edit
           </button>
         )}
       </div>
@@ -117,23 +118,23 @@ export function DailySummary({ activities, date }: DailySummaryProps) {
 
       <div className="daily-summary__stats">
         <StatCard
-          icon="⏱"
+          icon={<Clock size={20} />}
           label="Total Tracked"
           value={formatDuration(totalSeconds)}
         />
         <StatCard
-          icon="🎯"
+          icon={<Target size={20} />}
           label="Productive"
           value={formatDuration(productiveSeconds)}
           accent={productivityRate >= 70 ? "success" : productivityRate >= 40 ? "warning" : "danger"}
         />
         <StatCard
-          icon="🤝"
+          icon={<Users size={20} />}
           label="Meetings"
           value={`${meetingCount} (${formatDuration(meetingSeconds)})`}
         />
         <StatCard
-          icon="💻"
+          icon={<Monitor size={20} />}
           label="Apps Used"
           value={String(uniqueApps)}
         />
@@ -165,7 +166,7 @@ export function DailySummary({ activities, date }: DailySummaryProps) {
 }
 
 interface StatCardProps {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string;
   accent?: "success" | "warning" | "danger";
