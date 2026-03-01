@@ -20,7 +20,9 @@
   max-width: 600px;
   margin: auto;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  backdrop-filter: blur(48px);
+  -webkit-backdrop-filter: blur(48px);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-xl);
   padding: var(--space-8);
   box-shadow: var(--shadow-xl);
@@ -42,6 +44,7 @@
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   margin-bottom: var(--space-2);
+  letter-spacing: -1px;
 }
 
 .onboarding-subtitle {
@@ -57,10 +60,10 @@
   max-height: 40vh;
   overflow-y: auto;
   padding-right: var(--space-2);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
   padding: var(--space-4);
-  background: var(--color-surface-elevated);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .consent-section {
@@ -97,9 +100,9 @@
   gap: var(--space-3);
   cursor: pointer;
   padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.02);
   transition: all var(--transition-fast);
 }
 

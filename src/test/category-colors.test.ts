@@ -8,34 +8,34 @@ import { getCategoryColor } from "../lib/utils";
 describe("getCategoryColor", () => {
   it("returns a color for Development", () => {
     const color = getCategoryColor("Development");
-    expect(color).toContain("hsl");
-    expect(color).toContain("220");
+    expect(color).toContain("#");
+    expect(color).toBe("#2F73F6");
   });
 
   it("returns a color for Research", () => {
     const color = getCategoryColor("Research");
-    expect(color).toContain("hsl");
-    expect(color).toContain("260");
+    expect(color).toContain("#");
+    expect(color).toBe("#7845F0");
   });
 
   it("returns a color for Communication", () => {
-    expect(getCategoryColor("Communication")).toContain("hsl");
+    expect(getCategoryColor("Communication")).toBe("#F59E1A");
   });
 
   it("returns a color for Meetings", () => {
-    expect(getCategoryColor("Meetings")).toContain("150");
+    expect(getCategoryColor("Meetings")).toBe("#28BC6F");
   });
 
   it("returns a color for Design", () => {
-    expect(getCategoryColor("Design")).toContain("320");
+    expect(getCategoryColor("Design")).toBe("#DE31AD");
   });
 
   it("returns a color for Productivity", () => {
-    expect(getCategoryColor("Productivity")).toContain("200");
+    expect(getCategoryColor("Productivity")).toBe("#199BE6");
   });
 
   it("returns a color for Entertainment", () => {
-    expect(getCategoryColor("Entertainment")).toContain("hsl");
+    expect(getCategoryColor("Entertainment")).toBe("#EE5C5C");
   });
 
   it("returns Uncategorized color for unknown category", () => {

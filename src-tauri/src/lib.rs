@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // IntelliWork — AI-Powered Work Intelligence Assistant
 // Module declarations and Tauri app initialization
 

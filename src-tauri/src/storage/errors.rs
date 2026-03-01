@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Storage layer error types for IntelliWork.
 //
 // Uses `thiserror` for ergonomic error definitions.

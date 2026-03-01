@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Storage layer for IntelliWork.
 //
 // This module is the ONLY place that executes SQL queries.

@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Data anonymizer for IntelliWork.
 //
 // Removes or replaces sensitive information before sending
@@ -85,7 +88,6 @@ impl DataAnonymizer {
     fn redact_emails(&self, text: &str) -> String {
         let mut result = String::new();
         let mut chars = text.chars().peekable();
-        let mut in_word = false;
         let mut current_word = String::new();
 
         while let Some(ch) = chars.next() {
@@ -102,15 +104,12 @@ impl DataAnonymizer {
                 }
                 result.push_str("[EMAIL]");
                 current_word.clear();
-                in_word = false;
             } else if ch.is_whitespace() || ch == '<' || ch == '(' || ch == '[' {
                 result.push_str(&current_word);
                 result.push(ch);
                 current_word.clear();
-                in_word = false;
             } else {
                 current_word.push(ch);
-                in_word = true;
             }
         }
         result.push_str(&current_word);

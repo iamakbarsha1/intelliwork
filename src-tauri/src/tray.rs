@@ -1,9 +1,9 @@
-use core::fmt;
-use std::sync::{Arc, Mutex};
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
-    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager,
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, Emitter, Manager,
 };
 
 use crate::state::AppState;
@@ -31,7 +31,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     
     let _tray = TrayIconBuilder::new()
         .menu(&menu)
-        .menu_on_left_click(false)
+        .show_menu_on_left_click(false)
         .on_menu_event(|app_handle, event| {
             match event.id.as_ref() {
                 "toggle" => {

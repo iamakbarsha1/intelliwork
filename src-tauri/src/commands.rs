@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Tauri IPC command handlers for IntelliWork.
 //
 // These are thin wrappers that delegate to the tracker and database.

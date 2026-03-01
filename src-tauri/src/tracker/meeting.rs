@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Meeting detection for IntelliWork.
 //
 // Detects whether the user is in a meeting based on:

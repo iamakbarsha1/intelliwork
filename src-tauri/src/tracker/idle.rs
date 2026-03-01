@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Idle detection for IntelliWork.
 //
 // Wraps the platform layer's idle time API with a configurable

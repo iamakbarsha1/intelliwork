@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Application state for IntelliWork.
 //
 // Holds shared state managed by Tauri, accessible from

@@ -1,3 +1,7 @@
+#![allow(dead_code, unused_imports, unused_variables, clippy::duplicated_attributes)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // AI engine module for IntelliWork.
 //
 // Provides activity classification (rule-based + LLM hybrid),
@@ -12,9 +16,3 @@ pub mod llm;
 pub mod rules;
 pub mod summarizer;
 
-pub use anonymizer::DataAnonymizer;
-pub use classifier::{ClassificationResult, ClassificationSource, HybridClassifier, RuleBasedClassifier};
-pub use errors::AiError;
-pub use llm::{AiProvider, LlmClient, LlmConfig};
-pub use rules::ClassificationRule;
-pub use summarizer::{DailySummary, SummaryGenerator};

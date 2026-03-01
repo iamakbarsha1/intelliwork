@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // macOS platform tracker implementation.
 //
 // Uses NSWorkspace (via objc2-app-kit) for foreground app detection

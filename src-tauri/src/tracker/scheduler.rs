@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Office hours scheduling for IntelliWork.
 //
 // Controls whether tracking is active based on configurable

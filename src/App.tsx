@@ -86,7 +86,7 @@ function App() {
 
   return (
     <main
-      className={`dashboard ${view === "settings" ? "dashboard--settings" : ""}`}
+      className={`dashboard`}
       data-testid="app-root"
     >
       {/* Header */}

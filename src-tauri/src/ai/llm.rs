@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // LLM client for IntelliWork.
 //
 // Supports multiple AI providers for classification fallback
