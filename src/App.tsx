@@ -115,7 +115,7 @@ function App() {
 
       {/* Error Banner */}
       {(error || tracking.error) && (
-        <div className="card" style={{ gridColumn: "1 / -1", borderColor: "var(--color-danger)" }}>
+        <div className="card" style={{ borderColor: "var(--color-danger)", flexShrink: 0 }}>
           <span className="text-danger" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <AlertTriangle size={18} /> {error || tracking.error}
           </span>
@@ -140,7 +140,7 @@ function App() {
             </div>
 
             {/* Right Column: Timeline */}
-            <div style={{ gridColumn: "1 / -1" }}>
+            <div className="dashboard-column styled-scroll">
               <ActivityTimeline 
                 activities={activities} 
                 loading={activitiesLoading} 
