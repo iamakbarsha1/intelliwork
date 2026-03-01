@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Database operations for IntelliWork storage layer.
 //
 // This is the ONLY module that executes SQL queries.

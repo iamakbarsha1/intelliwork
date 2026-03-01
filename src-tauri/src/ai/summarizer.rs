@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Summary generator for IntelliWork.
 //
 // Generates end-of-day timesheet summaries from classified activities.

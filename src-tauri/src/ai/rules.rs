@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Classification rules for IntelliWork.
 //
 // Maps application names and window title patterns to categories.

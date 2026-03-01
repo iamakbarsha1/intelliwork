@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Database schema migrations for IntelliWork.
 //
 // All schema changes must go through versioned migrations.

@@ -1,10 +1,12 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Activity classifier for IntelliWork.
 //
 // Uses rule-based matching with optional LLM fallback (hybrid).
 // Rules are checked first (fast, offline). If no match, the
 // hybrid classifier can optionally call an LLM API.
 
-use std::collections::HashMap;
 use super::rules::{default_rules, ClassificationRule, MatchTarget};
 
 use serde::{Deserialize, Serialize};

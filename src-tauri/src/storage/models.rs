@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Data models for IntelliWork storage layer.
 //
 // These types map directly to database tables and are used

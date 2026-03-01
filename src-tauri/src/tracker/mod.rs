@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Tracker module for IntelliWork.
 //
 // Orchestrates activity tracking, meeting detection,
@@ -9,6 +12,4 @@ pub mod meeting;
 pub mod scheduler;
 
 pub use activity::{ActivityTracker, TrackingState};
-pub use idle::IdleState;
-pub use meeting::MeetingInfo;
 pub use scheduler::{OfficeHoursConfig, OfficeHoursManager};

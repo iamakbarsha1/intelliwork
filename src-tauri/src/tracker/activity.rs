@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Activity tracking engine for IntelliWork.
 //
 // Polls the platform layer every N seconds for the foreground app,

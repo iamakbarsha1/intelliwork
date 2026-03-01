@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Platform abstraction layer for IntelliWork.
 //
 // This module defines traits for OS-specific operations and provides
