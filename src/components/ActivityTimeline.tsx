@@ -8,11 +8,9 @@ import { formatDuration, formatTime, getCategoryColor } from "../lib/utils";
 interface ActivityTimelineProps {
   activities: ActivityLog[];
   loading: boolean;
-  onDelete?: (id: string) => void;
-  onDeleteAll?: () => void;
 }
 
-export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }: ActivityTimelineProps) {
+export function ActivityTimeline({ activities, loading }: ActivityTimelineProps) {
   if (loading) {
     return (
       <div className="timeline card animate-pulse" data-testid="timeline-loading">
@@ -24,25 +22,9 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }:
 
   return (
     <div className="timeline card" data-testid="activity-timeline">
-      <div className="timeline__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-          <h3 style={{ margin: 0 }}>📋 Activity Timeline</h3>
-          <span className="badge badge--neutral">{activities.length} activities</span>
-        </div>
-        
-        {activities.length > 0 && onDeleteAll && (
-          <button 
-            className="btn btn--secondary" 
-            style={{ padding: "var(--space-1) var(--space-2)", fontSize: "var(--font-size-sm)", color: "var(--color-danger)" }}
-            onClick={() => {
-              if (window.confirm("Are you sure you want to delete ALL activities for today? This cannot be undone.")) {
-                onDeleteAll();
-              }
-            }}
-          >
-            Delete All
-          </button>
-        )}
+      <div className="timeline__header">
+        <h3>📋 Activity Timeline</h3>
+        <span className="badge badge--neutral">{activities.length} activities</span>
       </div>
 
       {activities.length === 0 ? (
@@ -53,12 +35,7 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }:
       ) : (
         <div className="timeline__list">
           {activities.map((activity, index) => (
-            <ActivityCard 
-              key={activity.id} 
-              activity={activity} 
-              index={index} 
-              onDelete={onDelete ? () => onDelete(activity.id) : undefined}
-            />
+            <ActivityCard key={activity.id} activity={activity} index={index} />
           ))}
         </div>
       )}
@@ -69,10 +46,9 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }:
 interface ActivityCardProps {
   activity: ActivityLog;
   index: number;
-  onDelete?: () => void;
 }
 
-function ActivityCard({ activity, index, onDelete }: ActivityCardProps) {
+function ActivityCard({ activity, index }: ActivityCardProps) {
   const categoryColor = getCategoryColor(activity.category);
 
   return (
@@ -86,29 +62,11 @@ function ActivityCard({ activity, index, onDelete }: ActivityCardProps) {
         style={{ backgroundColor: categoryColor }}
       />
       <div className="activity-card__content">
-        <div className="activity-card__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span className="activity-card__app">{activity.app_name}</span>
-            <span className="activity-card__duration text-secondary">
-              {formatDuration(activity.duration_seconds)}
-            </span>
-          </div>
-          
-          {onDelete && (
-             <button 
-               className="btn btn--secondary" 
-               style={{ padding: "0 var(--space-2)", background: "transparent", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: "1.2rem" }}
-               onClick={(e) => {
-                 e.stopPropagation();
-                 if (window.confirm(`Delete activity: ${activity.app_name}?`)) {
-                   onDelete();
-                 }
-               }}
-               title="Delete activity"
-             >
-               ×
-             </button>
-          )}
+        <div className="activity-card__header">
+          <span className="activity-card__app">{activity.app_name}</span>
+          <span className="activity-card__duration text-secondary">
+            {formatDuration(activity.duration_seconds)}
+          </span>
         </div>
         {activity.window_title && (
           <span className="activity-card__title text-tertiary">

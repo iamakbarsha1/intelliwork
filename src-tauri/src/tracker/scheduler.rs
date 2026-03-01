@@ -3,7 +3,7 @@
 // Controls whether tracking is active based on configurable
 // office hours (start/end times per day).
 
-use chrono::{Local, NaiveTime};
+use chrono::{Local, NaiveTime, Timelike};
 use serde::{Deserialize, Serialize};
 
 /// Office hours configuration.

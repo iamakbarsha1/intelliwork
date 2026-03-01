@@ -8,7 +8,6 @@ import { DailySummary } from "./components/DailySummary";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { ConsentScreen } from "./components/ConsentScreen";
 import { SetupWizard } from "./components/SetupWizard";
-import { ExportPanel } from "./components/ExportPanel";
 import { useTracking, useActivities, useConfig } from "./hooks/useTauri";
 
 import type { AppInfo } from "./lib/types";
@@ -37,7 +36,7 @@ function App() {
 
   const today = getTodayDate();
   const tracking = useTracking();
-  const { activities, loading: activitiesLoading, refresh: refreshActivities, deleteActivities } = useActivities(today);
+  const { activities, loading: activitiesLoading, refresh: refreshActivities } = useActivities(today);
   const { config, loading: configLoading, updateConfig } = useConfig();
 
   // Redirect to onboarding if needed
@@ -130,24 +129,18 @@ function App() {
 
       {/* Main Content */}
       {view === "dashboard" ? (
-          <div className="dashboard-grid">
-            {/* Left Column: Summary + Daily Stats */}
-            <div className="dashboard-column styled-scroll">
-              <ExportPanel date={today} />
-              <DailySummary date={today} activities={activities} />
-              <CategoryChart activities={activities} />
-            </div>
+        <>
+          {/* Left Column */}
+          <DailySummary activities={activities} date={today} />
 
-            {/* Right Column: Timeline */}
-            <div style={{ gridColumn: "1 / -1" }}>
-              <ActivityTimeline 
-                activities={activities} 
-                loading={activitiesLoading} 
-                onDelete={(id) => deleteActivities([id])}
-                onDeleteAll={() => deleteActivities(activities.map(a => a.id))}
-              />
-            </div>
+          {/* Right Column */}
+          <CategoryChart activities={activities} />
+
+          {/* Full-width Timeline */}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <ActivityTimeline activities={activities} loading={activitiesLoading} />
           </div>
+        </>
       ) : (
         <SettingsPanel config={config} onUpdate={updateConfig} />
       )}

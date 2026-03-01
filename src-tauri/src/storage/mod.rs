@@ -9,4 +9,5 @@ pub mod migrations;
 pub mod models;
 
 pub use database::Database;
-pub use models::{ActivityLog, DailySummaryRecord, MeetingLog};
+pub use errors::StorageError;
+pub use models::{ActivityLog, Category, DailySummaryRecord, MeetingLog};

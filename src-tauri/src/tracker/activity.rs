@@ -4,7 +4,7 @@
 // detects app switches, manages idle state, checks office hours,
 // and writes activities to the database in batches.
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use chrono::Utc;
 
