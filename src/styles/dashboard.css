@@ -425,13 +425,13 @@
 }
 
 .badge--meeting {
-  background: hsl(150, 65%, 45%, 0.15);
-  color: hsl(150, 65%, 40%);
+  background: #28bc6f33;
+  color: #28bc6f;
 }
 
 .badge--idle {
-  background: hsl(35, 90%, 55%, 0.15);
-  color: hsl(35, 90%, 45%);
+  background: #f59e1a33;
+  color: #f59e1a;
 }
 
 /* ─── Settings Panel ─── */
