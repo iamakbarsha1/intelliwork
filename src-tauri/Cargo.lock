@@ -1840,6 +1840,7 @@ dependencies = [
  "chrono",
  "core-foundation",
  "core-graphics",
+ "dirs",
  "env_logger",
  "log",
  "objc2",
