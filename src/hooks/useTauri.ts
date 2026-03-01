@@ -118,11 +118,21 @@ export function useActivities(date: string) {
     }
   }, [date]);
 
+  const deleteActivities = useCallback(async (ids: string[]) => {
+    try {
+      await invoke("delete_activities", { ids });
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      throw err;
+    }
+  }, [refresh]);
+
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  return { activities, loading, error, refresh };
+  return { activities, loading, error, refresh, deleteActivities };
 }
 
 /** Hook: config values */
@@ -155,4 +165,49 @@ export function useConfig() {
   }, [refresh]);
 
   return { config, loading, updateConfig, refresh };
+}
+
+export interface DailySummaryRecord {
+  id: string;
+  summary_date: string;
+  raw_summary: string;
+  edited_summary: string | null;
+  total_productive_seconds: number;
+  category_breakdown: string;
+  ai_provider: string;
+  is_approved: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export function useAISummary(date: string) {
+  const [summary, setSummary] = useState<DailySummaryRecord | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await invoke<DailySummaryRecord | null>("get_summary", { date });
+      setSummary(result);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  }, [date]);
+
+  const saveSummary = useCallback(async (newSummary: DailySummaryRecord) => {
+    try {
+      await invoke("upsert_summary", { summary: newSummary });
+      await refresh();
+    } catch (err) {
+      throw err;
+    }
+  }, [refresh]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { summary, loading, saveSummary, refresh };
 }
