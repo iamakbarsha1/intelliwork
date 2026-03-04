@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 // Database operations for IntelliWork storage layer.
 //
 // This is the ONLY module that executes SQL queries.
@@ -6,6 +9,7 @@
 
 use std::collections::HashMap;
 use std::path::Path;
+use std::sync::Mutex;
 
 use rusqlite::{params, Connection};
 
@@ -15,10 +19,10 @@ use super::models::{ActivityLog, DailySummaryRecord, MeetingLog};
 
 /// Main database interface for IntelliWork.
 ///
-/// Wraps a SQLite connection and provides typed CRUD methods.
+/// Wraps a SQLite connection in a Mutex for thread-safe access.
 /// All operations go through this struct — no raw SQL elsewhere.
 pub struct Database {
-    conn: Connection,
+    conn: Mutex<Connection>,
 }
 
 impl Database {
@@ -28,7 +32,7 @@ impl Database {
     /// Runs migrations automatically.
     pub fn open(path: &Path) -> Result<Self, StorageError> {
         let conn = Connection::open(path)?;
-        let db = Self { conn };
+        let db = Self { conn: Mutex::new(conn) };
         db.initialize()?;
         Ok(db)
     }
@@ -38,15 +42,21 @@ impl Database {
     /// Runs migrations automatically.
     pub fn open_in_memory() -> Result<Self, StorageError> {
         let conn = Connection::open_in_memory()?;
-        let db = Self { conn };
+        let db = Self { conn: Mutex::new(conn) };
         db.initialize()?;
         Ok(db)
     }
 
     /// Run migrations and set pragmas.
     fn initialize(&self) -> Result<(), StorageError> {
-        migrations::run_migrations(&self.conn)?;
+        let conn = self.conn.lock().map_err(|e| StorageError::Database(rusqlite::Error::InvalidQuery))?;
+        migrations::run_migrations(&conn)?;
         Ok(())
+    }
+
+    /// Helper to lock the connection.
+    fn conn(&self) -> Result<std::sync::MutexGuard<'_, Connection>, StorageError> {
+        self.conn.lock().map_err(|_| StorageError::Database(rusqlite::Error::InvalidQuery))
     }
 
     // ─── Activity CRUD ─────────────────────────────────────────
@@ -58,7 +68,7 @@ impl Database {
         &self,
         activity: &ActivityLog,
     ) -> Result<String, StorageError> {
-        self.conn.execute(
+        self.conn()?.execute(
             "INSERT INTO activity_logs \
              (id, app_name, window_title, start_time, end_time, \
               duration_seconds, category, confidence, is_meeting, is_idle) \
@@ -84,7 +94,8 @@ impl Database {
         &self,
         date: &str,
     ) -> Result<Vec<ActivityLog>, StorageError> {
-        let mut stmt = self.conn.prepare(
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare(
             "SELECT id, app_name, window_title, start_time, end_time, \
              duration_seconds, category, confidence, is_meeting, is_idle, created_at \
              FROM activity_logs \
@@ -120,7 +131,7 @@ impl Database {
         category: &str,
         confidence: f64,
     ) -> Result<(), StorageError> {
-        let rows = self.conn.execute(
+        let rows = self.conn()?.execute(
             "UPDATE activity_logs SET category = ?1, confidence = ?2 WHERE id = ?3",
             params![category, confidence, id],
         )?;
@@ -162,7 +173,7 @@ impl Database {
             .map(|id| id as &dyn rusqlite::types::ToSql)
             .collect();
 
-        let count = self.conn.execute(&sql, params.as_slice())?;
+        let count = self.conn()?.execute(&sql, params.as_slice())?;
         Ok(count)
     }
 
@@ -170,9 +181,7 @@ impl Database {
     ///
     /// Returns the number of deleted records.
     pub fn delete_all_activities(&self) -> Result<usize, StorageError> {
-        let count = self
-            .conn
-            .execute("DELETE FROM activity_logs", [])?;
+        let count = self.conn()?.execute("DELETE FROM activity_logs", [])?;
         Ok(count)
     }
 
@@ -183,7 +192,7 @@ impl Database {
         &self,
         meeting: &MeetingLog,
     ) -> Result<String, StorageError> {
-        self.conn.execute(
+        self.conn()?.execute(
             "INSERT INTO meeting_logs \
              (id, activity_id, meeting_title, participants, \
               meeting_type, source_app, calendar_event_id) \
@@ -206,7 +215,8 @@ impl Database {
         &self,
         date: &str,
     ) -> Result<Vec<MeetingLog>, StorageError> {
-        let mut stmt = self.conn.prepare(
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare(
             "SELECT m.id, m.activity_id, m.meeting_title, m.participants, \
              m.meeting_type, m.source_app, m.calendar_event_id, m.created_at \
              FROM meeting_logs m \
@@ -240,7 +250,7 @@ impl Database {
         &self,
         summary: &DailySummaryRecord,
     ) -> Result<(), StorageError> {
-        self.conn.execute(
+        self.conn()?.execute(
             "INSERT INTO daily_summaries \
              (id, summary_date, raw_summary, edited_summary, \
               total_productive_seconds, category_breakdown, \
@@ -273,7 +283,8 @@ impl Database {
         &self,
         date: &str,
     ) -> Result<Option<DailySummaryRecord>, StorageError> {
-        let mut stmt = self.conn.prepare(
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare(
             "SELECT id, summary_date, raw_summary, edited_summary, \
              total_productive_seconds, category_breakdown, \
              ai_provider, is_approved, created_at, updated_at \
@@ -308,9 +319,8 @@ impl Database {
         &self,
         key: &str,
     ) -> Result<Option<String>, StorageError> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT value FROM config WHERE key = ?1")?;
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare("SELECT value FROM config WHERE key = ?1")?;
 
         let mut rows = stmt.query_map(params![key], |row| row.get(0))?;
 
@@ -326,7 +336,7 @@ impl Database {
         key: &str,
         value: &str,
     ) -> Result<(), StorageError> {
-        self.conn.execute(
+        self.conn()?.execute(
             "INSERT INTO config (key, value, updated_at) \
              VALUES (?1, ?2, datetime('now')) \
              ON CONFLICT(key) DO UPDATE SET \
@@ -341,9 +351,8 @@ impl Database {
     pub fn get_all_config(
         &self,
     ) -> Result<HashMap<String, String>, StorageError> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT key, value FROM config")?;
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare("SELECT key, value FROM config")?;
 
         let config = stmt
             .query_map([], |row| {
@@ -363,7 +372,7 @@ impl Database {
         &self,
         retention_days: u32,
     ) -> Result<usize, StorageError> {
-        let count = self.conn.execute(
+        let count = self.conn()?.execute(
             "DELETE FROM activity_logs \
              WHERE date(start_time) < date('now', ?1)",
             params![format!("-{} days", retention_days)],
@@ -373,7 +382,7 @@ impl Database {
 
     /// Run an integrity check on the database.
     pub fn integrity_check(&self) -> Result<bool, StorageError> {
-        let result: String = self.conn.query_row(
+        let result: String = self.conn()?.query_row(
             "PRAGMA integrity_check",
             [],
             |row| row.get(0),
