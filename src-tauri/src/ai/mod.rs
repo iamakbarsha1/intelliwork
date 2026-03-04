@@ -15,4 +15,5 @@ pub mod errors;
 pub mod llm;
 pub mod rules;
 pub mod summarizer;
+pub mod coach;
 
