@@ -11,6 +11,7 @@ import { ConsentScreen } from "./components/ConsentScreen";
 import { SetupWizard } from "./components/SetupWizard";
 import { ExportPanel } from "./components/ExportPanel";
 import { LiveView } from "./components/LiveView";
+import { FocusScore } from "./components/FocusScore";
 import { useTracking, useActivities, useConfig } from "./hooks/useTauri";
 
 import type { AppInfo } from "./lib/types";
@@ -20,6 +21,7 @@ import { getTodayDate } from "./lib/utils";
 import "./styles/globals.css";
 import "./styles/dashboard.css";
 import "./styles/consent.css";
+import "./styles/focus-score.css";
 
 type View = "dashboard" | "settings" | "consent" | "setup" | "live";
 
@@ -153,6 +155,7 @@ function App() {
             {/* Left Column: Summary + Daily Stats */}
             <div className="dashboard-column">
               <ExportPanel date={today} />
+              <FocusScore activities={activities} />
               <DailySummary date={today} activities={activities} />
               <CategoryChart activities={activities} />
             </div>

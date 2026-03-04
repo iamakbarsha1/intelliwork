@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { type ActivityLog, type TrackingState } from "../hooks/useTauri";
 import { formatDuration, getCategoryColor } from "../lib/utils";
 import { Activity, Clock } from "lucide-react";
+import { FocusScore } from "./FocusScore";
 
 interface LiveViewProps {
   activities: ActivityLog[];
@@ -57,10 +58,15 @@ export function LiveView({ activities, tracking }: LiveViewProps) {
   return (
     <div className="live-view card animate-fade-in" data-testid="live-view" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
       <div className="live-view__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "var(--space-2)" }}><Activity size={20} /> Live Tracking Activity</h3>
-        <span className="badge badge--neutral" style={{ fontSize: "var(--font-size-md)", padding: "var(--space-2) var(--space-4)" }}>
-          Total Today: {formatDuration(totalDailySeconds)}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+          <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <Activity size={20} /> Live Tracking Activity
+          </h3>
+          <span className="badge badge--neutral" style={{ fontSize: "var(--font-size-md)", padding: "var(--space-2) var(--space-4)" }}>
+            Total Today: {formatDuration(totalDailySeconds)}
+          </span>
+        </div>
+        <FocusScore activities={activities} compact={true} />
       </div>
 
       <div className="live-view__current" style={{ padding: "var(--space-4)", background: "var(--color-surface-hover)", borderRadius: "var(--radius-md)" }}>
