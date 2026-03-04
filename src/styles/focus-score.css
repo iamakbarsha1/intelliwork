@@ -1,0 +1,199 @@
+/* ============================================
+   FocusScore — Focus Coach Styles
+   ============================================ */
+
+/* ─── Full Card Layout ─── */
+.focus-score__header {
+  margin-bottom: var(--space-4);
+}
+
+.focus-score__body {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin-bottom: var(--space-5);
+}
+
+/* ─── Circular Ring ─── */
+.focus-score__ring-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.focus-score__ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.focus-score__ring-value {
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-score__ring-sublabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+/* ─── Quick Stats ─── */
+.focus-score__stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.focus-score__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.focus-score__stat-value {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-score__stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Breakdown Bars ─── */
+.focus-score__breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.focus-score__breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.focus-score__breakdown-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.focus-score__breakdown-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  min-width: 130px;
+}
+
+.focus-score__breakdown-bar-track {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.focus-score__breakdown-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.focus-score__breakdown-value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ─── Nudges ─── */
+.focus-score__nudges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.focus-score__nudge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.focus-score__nudge-icon {
+  font-size: var(--font-size-md);
+  flex-shrink: 0;
+}
+
+.focus-score__nudge-text {
+  flex: 1;
+  color: var(--color-text-secondary);
+}
+
+.focus-score__nudge-dismiss {
+  background: none;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: color var(--transition-fast);
+}
+
+.focus-score__nudge-dismiss:hover {
+  color: var(--color-text);
+}
+
+/* ─── Compact Mode (LiveView header) ─── */
+.focus-score--compact {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.focus-score--compact__inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.focus-score--compact__value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.focus-score--compact__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
