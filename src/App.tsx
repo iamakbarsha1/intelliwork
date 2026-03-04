@@ -21,9 +21,11 @@ import { getTodayDate } from "./lib/utils";
 import "./styles/globals.css";
 import "./styles/dashboard.css";
 import "./styles/consent.css";
+import { WeeklyTrends } from "./components/WeeklyTrends";
 import "./styles/focus-score.css";
+import "./styles/weekly-trends.css";
 
-type View = "dashboard" | "settings" | "consent" | "setup" | "live";
+type View = "dashboard" | "trends" | "settings" | "consent" | "setup" | "live";
 
 /**
  * Root application component.
@@ -114,6 +116,12 @@ function App() {
             <LayoutDashboard size={18} /> Dashboard
           </button>
           <button
+            className={`dashboard__nav-btn ${view === "trends" ? "dashboard__nav-btn--active" : ""}`}
+            onClick={() => setView("trends")}
+          >
+            <Activity size={18} /> Trends
+          </button>
+          <button
             className={`dashboard__nav-btn ${view === "settings" ? "dashboard__nav-btn--active" : ""}`}
             onClick={() => setView("settings")}
           >
@@ -170,6 +178,8 @@ function App() {
               />
             </div>
           </div>
+      ) : view === "trends" ? (
+        <WeeklyTrends />
       ) : (
         <SettingsPanel config={config} onUpdate={updateConfig} />
       )}

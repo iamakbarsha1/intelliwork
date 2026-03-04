@@ -192,6 +192,62 @@ impl SummaryGenerator {
 
         lines.join("\n")
     }
+
+    /// Generate an AI Weekly Insight from a list of activities.
+    pub async fn generate_weekly_insights(
+        activities: &[ActivityLog],
+        llm: &crate::ai::llm::LlmClient,
+    ) -> Result<String, crate::ai::errors::AiError> {
+        if activities.is_empty() {
+            return Ok("Not enough data to generate a weekly insight.".to_string());
+        }
+        
+        let total_seconds: i64 = activities.iter().map(|a| a.duration_seconds).sum();
+        let meeting_seconds: i64 = activities.iter().filter(|a| a.is_meeting).map(|a| a.duration_seconds).sum();
+        
+        // Group by day to find most productive day
+        let mut daily_productive = HashMap::new();
+        let mut category_map = HashMap::new();
+        
+        for a in activities {
+            let day = a.start_time.split('T').next().unwrap_or("Unknown").to_string();
+            let entry = daily_productive.entry(day).or_insert(0i64);
+            if !a.is_idle && a.category != "Entertainment" {
+                *entry += a.duration_seconds;
+            }
+            
+            let cat_entry = category_map.entry(a.category.clone()).or_insert(0i64);
+            *cat_entry += a.duration_seconds;
+        }
+
+        let mut prompt = String::new();
+        prompt.push_str("Generate a weekly productivity insight summary for the user based on the following data.\n");
+        prompt.push_str(&format!("Total time tracked: {:.1} hours\n", total_seconds as f64 / 3600.0));
+        prompt.push_str(&format!("Meeting time: {:.1} hours\n", meeting_seconds as f64 / 3600.0));
+        
+        prompt.push_str("Daily productive hours:\n");
+        for (day, secs) in daily_productive {
+            prompt.push_str(&format!("- {}: {:.1} hours\n", day, secs as f64 / 3600.0));
+        }
+
+        prompt.push_str("Category breakdown (hours):\n");
+        for (cat, secs) in category_map {
+             prompt.push_str(&format!("- {}: {:.1} hours\n", cat, secs as f64 / 3600.0));
+        }
+
+        prompt.push_str("\nRequirements:\n");
+        prompt.push_str("- Keep it concise and natural.\n");
+        prompt.push_str("- Mention their most productive day.\n");
+        prompt.push_str("- Comment on their meeting load if relevant.\n");
+        prompt.push_str("- Provide exactly 1 actionable recommendation for next week.\n");
+
+        if llm.is_ready() && !llm.provider().is_local() {
+             llm.complete(&prompt).await
+        } else {
+             // Fallback for rule-based or unconfigured
+             Ok("Weekly insight requires cloud AI capabilities to be configured (OpenAI or Gemini). For now, review your dashboard to assess your trends.".to_string())
+        }
+    }
 }
 
 #[cfg(test)]

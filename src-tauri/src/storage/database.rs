@@ -124,6 +124,42 @@ impl Database {
         Ok(activities)
     }
 
+    /// Get all activities for a date range (inclusive).
+    pub fn get_activities_for_date_range(
+        &self,
+        start_date: &str,
+        end_date: &str,
+    ) -> Result<Vec<ActivityLog>, StorageError> {
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare(
+            "SELECT id, app_name, window_title, start_time, end_time, \
+             duration_seconds, category, confidence, is_meeting, is_idle, created_at \
+             FROM activity_logs \
+             WHERE date(start_time) >= ?1 AND date(start_time) <= ?2 \
+             ORDER BY start_time ASC",
+        )?;
+
+        let activities = stmt
+            .query_map(params![start_date, end_date], |row| {
+                Ok(ActivityLog {
+                    id: row.get(0)?,
+                    app_name: row.get(1)?,
+                    window_title: row.get(2)?,
+                    start_time: row.get(3)?,
+                    end_time: row.get(4)?,
+                    duration_seconds: row.get(5)?,
+                    category: row.get(6)?,
+                    confidence: row.get(7)?,
+                    is_meeting: row.get::<_, i32>(8)? != 0,
+                    is_idle: row.get::<_, i32>(9)? != 0,
+                    created_at: row.get(10)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(activities)
+    }
+
     /// Update the category and confidence of an activity.
     pub fn update_activity_category(
         &self,
@@ -444,6 +480,26 @@ mod tests {
         let db = create_test_db();
         let activities = db.get_activities_for_date("2025-01-01").unwrap();
         assert!(activities.is_empty());
+    }
+
+    #[test]
+    fn test_get_activities_for_date_range() {
+        let db = create_test_db();
+        let mut a1 = create_test_activity("VS Code", "Development");
+        a1.start_time = "2026-03-01T09:00:00+00:00".to_string();
+        let mut a2 = create_test_activity("Chrome", "Research");
+        a2.start_time = "2026-03-02T10:00:00+00:00".to_string();
+        let mut a3 = create_test_activity("Slack", "Communication");
+        a3.start_time = "2026-03-03T11:00:00+00:00".to_string();
+
+        db.insert_activity(&a1).unwrap();
+        db.insert_activity(&a2).unwrap();
+        db.insert_activity(&a3).unwrap();
+
+        let activities = db.get_activities_for_date_range("2026-03-01", "2026-03-02").unwrap();
+        assert_eq!(activities.len(), 2);
+        assert_eq!(activities[0].app_name, "VS Code");
+        assert_eq!(activities[1].app_name, "Chrome");
     }
 
     #[test]
