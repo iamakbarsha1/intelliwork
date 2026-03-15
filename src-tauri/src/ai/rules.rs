@@ -27,6 +27,7 @@ pub enum MatchTarget {
     AppName,
     WindowTitle,
     BundleId,
+    BrowserUrl,
     Either,
 }
 
@@ -66,7 +67,8 @@ pub fn default_rules() -> Vec<ClassificationRule> {
 
         // ─── Research ─────────────────────────────────────
         rule("stackoverflow", MatchTarget::WindowTitle, "Research", 0.85),
-        rule("Stack Overflow", MatchTarget::WindowTitle, "Research", 0.85),
+        rule("github.com", MatchTarget::BrowserUrl, "Research", 0.90),
+        rule("stackoverflow.com", MatchTarget::BrowserUrl, "Research", 0.90),
         rule("docs.rs", MatchTarget::WindowTitle, "Research", 0.85),
         rule("developer.mozilla", MatchTarget::WindowTitle, "Research", 0.85),
         rule("MDN Web Docs", MatchTarget::WindowTitle, "Research", 0.85),
@@ -129,6 +131,10 @@ pub fn default_rules() -> Vec<ClassificationRule> {
         rule("Netflix", MatchTarget::WindowTitle, "Entertainment", 0.90),
         rule("Spotify", MatchTarget::AppName, "Entertainment", 0.85),
         rule("Apple Music", MatchTarget::AppName, "Entertainment", 0.80),
+        rule("twitter.com", MatchTarget::BrowserUrl, "Entertainment", 0.90),
+        rule("reddit.com", MatchTarget::BrowserUrl, "Entertainment", 0.90),
+        rule("youtube.com", MatchTarget::BrowserUrl, "Entertainment", 0.95),
+        rule("netflix.com", MatchTarget::BrowserUrl, "Entertainment", 0.95),
         rule("Twitter", MatchTarget::WindowTitle, "Entertainment", 0.75),
         rule("Reddit", MatchTarget::WindowTitle, "Entertainment", 0.70),
         rule("Instagram", MatchTarget::WindowTitle, "Entertainment", 0.80),

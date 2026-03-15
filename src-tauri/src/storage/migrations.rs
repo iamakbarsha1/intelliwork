@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use super::errors::StorageError;
 
 /// Current schema version.
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 2;
 
 /// Run all pending database migrations.
 ///
@@ -26,6 +26,10 @@ pub fn run_migrations(conn: &Connection) -> Result<(), StorageError> {
 
     if current_version < 1 {
         migrate_v1(conn)?;
+    }
+
+    if current_version < 2 {
+        migrate_v2(conn)?;
     }
 
     set_schema_version(conn, SCHEMA_VERSION)?;
@@ -154,6 +158,13 @@ fn migrate_v1(conn: &Connection) -> Result<(), StorageError> {
     Ok(())
 }
 
+/// Migration v2: Add browser_url to activity_logs
+fn migrate_v2(conn: &Connection) -> Result<(), StorageError> {
+    log::info!("Running migration v2: add browser_url column");
+    conn.execute_batch("ALTER TABLE activity_logs ADD COLUMN browser_url TEXT;")?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -222,6 +233,6 @@ mod tests {
         run_migrations(&conn).unwrap();
 
         let version = get_schema_version(&conn).unwrap();
-        assert_eq!(version, 1);
+        assert_eq!(version, 2);
     }
 }

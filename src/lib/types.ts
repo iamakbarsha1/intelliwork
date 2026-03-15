@@ -29,6 +29,7 @@ export interface ActivityLog {
   confidence: number;
   is_meeting: boolean;
   is_idle: boolean;
+  browser_url?: string | null;
 }
 
 /** Meeting-specific metadata */

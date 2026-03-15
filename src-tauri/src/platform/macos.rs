@@ -92,12 +92,39 @@ impl MacOSTracker {
             _ => None,
         }
     }
+
+    fn get_browser_url(&self, app_name: &str) -> Option<String> {
+        let script = match app_name {
+            "Google Chrome" => "try\n tell application \"Google Chrome\" to get URL of active tab of front window\n on error\n return \"\"\n end try",
+            "Brave Browser" => "try\n tell application \"Brave Browser\" to get URL of active tab of front window\n on error\n return \"\"\n end try",
+            "Safari" => "try\n tell application \"Safari\" to get URL of front document\n on error\n return \"\"\n end try",
+            "Arc" => "try\n tell application \"Arc\" to get URL of active tab of front window\n on error\n return \"\"\n end try",
+            _ => return None,
+        };
+
+        let output = std::process::Command::new("osascript")
+            .args(["-e", script])
+            .output();
+
+        match output {
+            Ok(out) if out.status.success() => {
+                let url = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                if url.is_empty() || url == "missing value" {
+                    None
+                } else {
+                    Some(url)
+                }
+            }
+            _ => None,
+        }
+    }
 }
 
 impl PlatformTracker for MacOSTracker {
     fn get_foreground_app(&self) -> Result<AppInfo, PlatformError> {
         let (app_name, bundle_id) = self.get_frontmost_app_info()?;
         let window_title = self.get_frontmost_window_title();
+        let browser_url = self.get_browser_url(&app_name);
 
         // Check if this is a known meeting app
         let is_meeting_app = is_meeting_application(&app_name, bundle_id.as_deref());
@@ -107,6 +134,7 @@ impl PlatformTracker for MacOSTracker {
             window_title,
             bundle_id,
             is_meeting_app,
+            browser_url,
         })
     }
 

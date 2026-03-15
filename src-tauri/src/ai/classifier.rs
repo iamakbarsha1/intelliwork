@@ -54,12 +54,16 @@ impl RuleBasedClassifier {
         app_name: &str,
         window_title: Option<&str>,
         bundle_id: Option<&str>,
+        browser_url: Option<&str>,
     ) -> ClassificationResult {
         let app_lower = app_name.to_lowercase();
         let title_lower = window_title
             .unwrap_or("")
             .to_lowercase();
         let bundle_lower = bundle_id
+            .unwrap_or("")
+            .to_lowercase();
+        let url_lower = browser_url
             .unwrap_or("")
             .to_lowercase();
 
@@ -72,9 +76,11 @@ impl RuleBasedClassifier {
                 MatchTarget::AppName => app_lower.contains(&pattern_lower),
                 MatchTarget::WindowTitle => title_lower.contains(&pattern_lower),
                 MatchTarget::BundleId => bundle_lower.contains(&pattern_lower),
+                MatchTarget::BrowserUrl => url_lower.contains(&pattern_lower),
                 MatchTarget::Either => {
                     app_lower.contains(&pattern_lower)
                         || title_lower.contains(&pattern_lower)
+                        || url_lower.contains(&pattern_lower)
                 }
             };
 
@@ -134,8 +140,9 @@ impl HybridClassifier {
         app_name: &str,
         window_title: Option<&str>,
         bundle_id: Option<&str>,
+        browser_url: Option<&str>,
     ) -> ClassificationResult {
-        let result = self.rule_classifier.classify(app_name, window_title, bundle_id);
+        let result = self.rule_classifier.classify(app_name, window_title, bundle_id, browser_url);
 
         if result.confidence >= self.min_confidence {
             return result;
@@ -160,7 +167,7 @@ mod tests {
     #[test]
     fn test_vs_code_is_development() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("Visual Studio Code", Some("main.rs — intelliwork"), None);
+        let result = c.classify("Visual Studio Code", Some("main.rs — intelliwork"), None, None);
         assert_eq!(result.category, "Development");
         assert!(result.confidence >= 0.90);
     }
@@ -172,6 +179,7 @@ mod tests {
             "Google Chrome",
             Some("rust - How to use Mutex - Stack Overflow"),
             None,
+            Some("https://stackoverflow.com/questions/1234")
         );
         assert_eq!(result.category, "Research");
         assert!(result.confidence >= 0.80);
@@ -180,7 +188,7 @@ mod tests {
     #[test]
     fn test_zoom_is_meetings() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("Zoom", Some("Team Standup"), None);
+        let result = c.classify("Zoom", Some("Team Standup"), None, None);
         assert_eq!(result.category, "Meetings");
         assert!(result.confidence >= 0.90);
     }
@@ -188,7 +196,7 @@ mod tests {
     #[test]
     fn test_slack_is_communication() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("Slack", Some("#general"), None);
+        let result = c.classify("Slack", Some("#general"), None, None);
         assert_eq!(result.category, "Communication");
         assert!(result.confidence >= 0.85);
     }
@@ -196,7 +204,7 @@ mod tests {
     #[test]
     fn test_figma_is_design() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("Figma", Some("Dashboard Mockup"), None);
+        let result = c.classify("Figma", Some("Dashboard Mockup"), None, None);
         assert_eq!(result.category, "Design");
         assert!(result.confidence >= 0.90);
     }
@@ -204,7 +212,7 @@ mod tests {
     #[test]
     fn test_notion_is_productivity() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("Notion", Some("Sprint Planning Notes"), None);
+        let result = c.classify("Notion", Some("Sprint Planning Notes"), None, None);
         assert_eq!(result.category, "Productivity");
         assert!(result.confidence >= 0.80);
     }
@@ -212,7 +220,7 @@ mod tests {
     #[test]
     fn test_youtube_is_entertainment() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("Safari", Some("YouTube - Music Video"), None);
+        let result = c.classify("Safari", Some("YouTube - Music Video"), None, None);
         assert_eq!(result.category, "Entertainment");
         assert!(result.confidence >= 0.70);
     }
@@ -220,7 +228,7 @@ mod tests {
     #[test]
     fn test_unknown_app_is_uncategorized() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("RandomUnknownApp", None, None);
+        let result = c.classify("RandomUnknownApp", None, None, None);
         assert_eq!(result.category, "Uncategorized");
         assert_eq!(result.confidence, 0.0);
     }
@@ -228,14 +236,14 @@ mod tests {
     #[test]
     fn test_case_insensitive_matching() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("visual studio code", Some("test.rs"), None);
+        let result = c.classify("visual studio code", Some("test.rs"), None, None);
         assert_eq!(result.category, "Development");
     }
 
     #[test]
     fn test_hybrid_classifier_uses_rules() {
         let h = HybridClassifier::new(0.5);
-        let result = h.classify("VS Code", Some("lib.rs"), None);
+        let result = h.classify("VS Code", Some("lib.rs"), None, None);
         assert_eq!(result.category, "Development");
         assert!(result.confidence >= 0.90);
     }
@@ -243,7 +251,7 @@ mod tests {
     #[test]
     fn test_terminal_is_development() {
         let c = RuleBasedClassifier::new();
-        let result = c.classify("Terminal", Some("cargo test"), None);
+        let result = c.classify("Terminal", Some("cargo test"), None, None);
         assert_eq!(result.category, "Development");
         assert!(result.confidence >= 0.75);
     }

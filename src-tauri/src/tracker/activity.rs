@@ -16,6 +16,7 @@ use crate::storage::{ActivityLog, Database, MeetingLog};
 use crate::tracker::idle::{IdleDetector, IdleState};
 use crate::tracker::meeting::{MeetingDetector, MeetingInfo};
 use crate::tracker::scheduler::OfficeHoursManager;
+use crate::ai::classifier::HybridClassifier;
 
 use tauri::Emitter;
 
@@ -57,6 +58,8 @@ pub struct ActivityTracker {
     meeting_detector: MeetingDetector,
     /// Idle detector
     idle_detector: IdleDetector,
+    /// Activity classifier
+    classifier: HybridClassifier,
     /// Office hours scheduler
     scheduler: OfficeHoursManager,
     /// Whether tracking is currently enabled by the user
@@ -86,6 +89,7 @@ impl ActivityTracker {
             platform,
             meeting_detector: MeetingDetector::new(),
             idle_detector: IdleDetector::new(idle_threshold),
+            classifier: HybridClassifier::new(0.6),
             scheduler,
             tracking_enabled: false,
             current_activity: None,
@@ -156,14 +160,26 @@ impl ActivityTracker {
 
         let is_idle = idle_state == IdleState::Idle;
 
-        // Detect app switch
+        // Detect app switch or title/url change
         let app_changed = self
             .last_app_name
             .as_ref()
             .map(|last| last != &app_info.app_name)
             .unwrap_or(true);
 
-        if app_changed {
+        let title_changed = match (&self.current_activity, &app_info.window_title) {
+            (Some(act), Some(new_title)) => act.window_title.as_ref() != Some(new_title),
+            (Some(act), None) => act.window_title.is_some(),
+            _ => false,
+        };
+
+        let url_changed = match (&self.current_activity, &app_info.browser_url) {
+            (Some(act), Some(new_url)) => act.browser_url.as_ref() != Some(new_url),
+            (Some(act), None) => act.browser_url.is_some(),
+            _ => false,
+        };
+
+        if app_changed || title_changed || url_changed {
             self.on_app_switch(&app_info, is_idle);
         }
 
@@ -206,11 +222,22 @@ impl ActivityTracker {
         self.finalize_current_activity();
 
         // Start new activity
-        let activity = ActivityLog::new(
+        let mut activity = ActivityLog::new(
             &app_info.app_name,
             app_info.window_title.as_deref(),
             Utc::now(),
         );
+        
+        let class_result = self.classifier.classify(
+            &app_info.app_name,
+            app_info.window_title.as_deref(),
+            app_info.bundle_id.as_deref(),
+            app_info.browser_url.as_deref(),
+        );
+        activity.category = class_result.category;
+        activity.confidence = class_result.confidence;
+        
+        activity.browser_url = app_info.browser_url.clone();
 
         log::debug!(
             "App switch: {} → {}",

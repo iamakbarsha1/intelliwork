@@ -31,11 +31,12 @@ export interface ActivityLog {
   confidence: number;
   is_meeting: boolean;
   is_idle: boolean;
+  browser_url?: string | null;
   created_at: string | null;
 }
 
 /** Hook: tracking state with polling */
-export function useTracking(pollIntervalMs = 5000) {
+export function useTracking(pollIntervalMs = 1000) {
   const [state, setState] = useState<TrackingState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<number | null>(null);

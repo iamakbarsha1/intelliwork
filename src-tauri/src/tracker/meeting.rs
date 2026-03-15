@@ -131,6 +131,7 @@ mod tests {
             window_title: title.map(|t| t.to_string()),
             bundle_id: None,
             is_meeting_app: is_meeting,
+            browser_url: None,
         }
     }
 
