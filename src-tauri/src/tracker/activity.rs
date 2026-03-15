@@ -326,6 +326,9 @@ impl ActivityTracker {
 
         if written > 0 {
             log::debug!("Flushed {} activities to database", written);
+            if let Err(e) = self.db.check_gamification_milestones() {
+                log::error!("Error checking gamification milestones: {}", e);
+            }
         }
 
         Ok(written)

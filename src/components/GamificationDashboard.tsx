@@ -7,7 +7,7 @@ interface Achievement {
   achievement_type: string;
   name: string;
   value: number;
-  created_at: string;
+  earned_at: string;
 }
 
 interface GamificationData {
@@ -125,7 +125,7 @@ export const GamificationDashboard: React.FC = () => {
                         ach.achievement_type === 'collaboration' ? <Heart size={32} /> : <Zap size={32} />}
                      </div>
                      <h4 className="text-sm font-black text-white uppercase tracking-wider mb-1 line-clamp-1">{ach.name}</h4>
-                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{new Date(ach.created_at).toLocaleDateString()}</p>
+                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{new Date(ach.earned_at).toLocaleDateString()}</p>
                    </div>
                    <div className="mt-4 px-3 py-1 bg-white/5 rounded-full border border-white/10 text-[10px] font-black text-[#00ff88] uppercase tracking-tighter">Verified Achievement</div>
                 </div>

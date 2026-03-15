@@ -229,6 +229,138 @@ impl Database {
         Ok(count)
     }
 
+
+    /// Get total tracked duration for a specific date (in seconds).
+    pub fn get_total_duration_for_date(&self, date: &str) -> Result<i64, StorageError> {
+        let conn = self.conn()?;
+        let total: i64 = conn.query_row(
+            "SELECT COALESCE(SUM(duration_seconds), 0) FROM activity_logs WHERE date(start_time) = ?1",
+            params![date],
+            |row| row.get(0),
+        )?;
+        Ok(total)
+    }
+
+    /// Get total meeting duration for a specific date (in seconds).
+    pub fn get_total_meeting_duration_for_date(&self, date: &str) -> Result<i64, StorageError> {
+        let conn = self.conn()?;
+        let total: i64 = conn.query_row(
+            "SELECT COALESCE(SUM(duration_seconds), 0) FROM activity_logs \
+             WHERE date(start_time) = ?1 AND is_meeting = 1",
+            params![date],
+            |row| row.get(0),
+        )?;
+        Ok(total)
+    }
+
+    /// Update streaks and return current streak count.
+    pub fn update_streaks(&self) -> Result<i64, StorageError> {
+        let conn = self.conn()?;
+        
+        // Count consecutive days with activity
+        let mut streak = 0;
+        let mut current_date = chrono::Local::now().date_naive();
+        
+        loop {
+            let date_str = current_date.format("%Y-%m-%d").to_string();
+            let has_activity: bool = conn.query_row(
+                "SELECT EXISTS(SELECT 1 FROM activity_logs WHERE date(start_time) = ?1)",
+                params![date_str],
+                |row| row.get(0),
+            )?;
+            
+            if has_activity {
+                streak += 1;
+                current_date = current_date.pred_opt().expect("Valid date");
+            } else {
+                // If today has no activity yet, check yesterday
+                if streak == 0 {
+                    current_date = current_date.pred_opt().expect("Valid date");
+                    let date_str_yest = current_date.format("%Y-%m-%d").to_string();
+                    let has_yesterday: bool = conn.query_row(
+                        "SELECT EXISTS(SELECT 1 FROM activity_logs WHERE date(start_time) = ?1)",
+                        params![date_str_yest],
+                        |row| row.get(0),
+                    )?;
+                    if !has_yesterday {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            
+            if streak > 365 { break; } // Safety limit
+        }
+
+        // Upsert streak achievement
+        let achievement = Achievement::new("streak", "Current Streak", streak);
+        conn.execute(
+            "INSERT INTO gamification (id, achievement_type, name, value, earned_at) \
+             VALUES (?1, ?2, ?3, ?4, ?5) \
+             ON CONFLICT(achievement_type, name) DO UPDATE SET value = excluded.value, earned_at = excluded.earned_at",
+            params![
+                achievement.id,
+                achievement.achievement_type,
+                achievement.name,
+                achievement.value,
+                achievement.earned_at,
+            ],
+        )?;
+
+        Ok(streak)
+    }
+
+    /// Orchestrate all gamification checks.
+    pub fn check_gamification_milestones(&self) -> Result<(), StorageError> {
+        let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+        
+        // 1. Check for "Deep Work Master" (> 4 hours)
+        let total_seconds = self.get_total_duration_for_date(&today)?;
+        if total_seconds >= 4 * 3600 {
+            let achievement = Achievement::new("milestone", "Deep Work Master", 4);
+            self.upsert_milestone(&achievement)?;
+        } else if total_seconds >= 2 * 3600 {
+            let achievement = Achievement::new("milestone", "Productive Pro", 2);
+            self.upsert_milestone(&achievement)?;
+        } else if total_seconds >= 3600 {
+            let achievement = Achievement::new("milestone", "Solid Start", 1);
+            self.upsert_milestone(&achievement)?;
+        }
+
+        // 2. Check for "Meeting Marathon" (> 2 hours)
+        let meeting_seconds = self.get_total_meeting_duration_for_date(&today)?;
+        if meeting_seconds >= 2 * 3600 {
+            let achievement = Achievement::new("milestone", "Meeting Marathon", 2);
+            self.upsert_milestone(&achievement)?;
+        }
+
+        // 3. Update streaks
+        self.update_streaks()?;
+
+        Ok(())
+    }
+
+    fn upsert_milestone(&self, achievement: &Achievement) -> Result<(), StorageError> {
+        // Only insert if not earned today or if value is higher
+        self.conn()?.execute(
+            "INSERT INTO gamification (id, achievement_type, name, value, earned_at) \
+             VALUES (?1, ?2, ?3, ?4, ?5) \
+             ON CONFLICT(achievement_type, name) DO UPDATE SET \
+             value = MAX(gamification.value, excluded.value), \
+             earned_at = CASE WHEN excluded.value > gamification.value THEN excluded.earned_at ELSE gamification.earned_at END",
+            params![
+                achievement.id,
+                achievement.achievement_type,
+                achievement.name,
+                achievement.value,
+                achievement.earned_at,
+            ],
+        )?;
+        Ok(())
+    }
+
+
     // ─── Meeting CRUD ──────────────────────────────────────────
 
     /// Insert a new meeting log.
@@ -565,14 +697,18 @@ impl Database {
     pub fn get_daily_streak_count(&self) -> Result<i64, StorageError> {
         let conn = self.conn()?;
         let mut stmt = conn.prepare(
-            "WITH RECURSIVE
-              dates(d) AS (
-                SELECT date(max(start_time)) FROM activity_logs
-                UNION ALL
-                SELECT date(d, '-1 day') FROM dates
-                WHERE EXISTS (SELECT 1 FROM activity_logs WHERE date(start_time) = date(d, '-1 day'))
-              )
-            SELECT count(*) FROM dates"
+            "SELECT CASE 
+                WHEN max(start_time) IS NULL OR date(max(start_time)) < date('now', '-1 day') THEN 0 
+                ELSE (
+                    WITH RECURSIVE dates(d) AS (
+                        SELECT date(max(start_time)) FROM activity_logs
+                        UNION ALL
+                        SELECT date(d, '-1 day') FROM dates
+                        WHERE EXISTS (SELECT 1 FROM activity_logs WHERE date(start_time) = date(d, '-1 day'))
+                    )
+                    SELECT count(*) FROM dates
+                )
+             END FROM activity_logs"
         )?;
 
         let count: i64 = stmt.query_row([], |row| row.get(0)).unwrap_or(0);
