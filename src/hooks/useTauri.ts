@@ -203,3 +203,51 @@ export function useAISummary(date: string) {
 
   return { summary, loading, saveSummary, refresh };
 }
+
+/** Hook: activities for a date range */
+export function useWeeklyActivities(startDate: string, endDate: string) {
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await invoke<ActivityLog[]>("get_activities_range", { startDate, endDate });
+      setActivities(result);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { activities, loading, error, refresh };
+}
+
+/** Hook: AI Weekly Insight */
+export function useWeeklyInsight() {
+  const [insight, setInsight] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const generate = useCallback(async (startDate: string, endDate: string) => {
+    setLoading(true);
+    try {
+      const result = await invoke<string>("generate_weekly_insights", { startDate, endDate });
+      setInsight(result);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { insight, loading, error, generate };
+}

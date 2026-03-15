@@ -69,6 +69,19 @@ pub fn get_activities(
         .map_err(|e| format!("DB error: {}", e))
 }
 
+/// Get activities for a date range (inclusive).
+#[tauri::command]
+pub fn get_activities_range(
+    state: State<'_, AppState>,
+    start_date: String,
+    end_date: String,
+) -> Result<Vec<crate::storage::ActivityLog>, String> {
+    state
+        .db
+        .get_activities_for_date_range(&start_date, &end_date)
+        .map_err(|e| format!("DB error: {}", e))
+}
+
 /// Get a daily summary for a specific date.
 #[tauri::command]
 pub fn get_summary(
@@ -79,6 +92,42 @@ pub fn get_summary(
         .db
         .get_summary(&date)
         .map_err(|e| format!("DB error: {}", e))
+}
+
+/// Generate AI Weekly Insight from a date range
+#[tauri::command]
+pub async fn generate_weekly_insights(
+    state: State<'_, AppState>,
+    start_date: String,
+    end_date: String,
+) -> Result<String, String> {
+    let activities = state
+        .db
+        .get_activities_for_date_range(&start_date, &end_date)
+        .map_err(|e| format!("DB error: {}", e))?;
+
+    let config = {
+        let ai_provider_str = state
+            .db
+            .get_config("ai_provider")
+            .unwrap_or(None)
+            .unwrap_or_else(|| "rule_based".to_string());
+        
+        let api_key = state.db.get_config("ai_api_key").unwrap_or(None);
+
+        crate::ai::llm::LlmConfig {
+            provider: crate::ai::llm::AiProvider::from_str_safe(&ai_provider_str),
+            api_key,
+            model: "gpt-4o-mini".to_string(), // we can customize this later
+            ..Default::default()
+        }
+    };
+
+    let llm = crate::ai::llm::LlmClient::new(config);
+
+    crate::ai::summarizer::SummaryGenerator::generate_weekly_insights(&activities, &llm)
+        .await
+        .map_err(|e| format!("AI error: {}", e))
 }
 
 /// Upsert a daily summary (used for editing).
