@@ -7,6 +7,8 @@
 // Each command accesses shared state via `tauri::State<AppState>`.
 
 use tauri::State;
+use chrono::Utc;
+use uuid::Uuid;
 
 use crate::state::AppState;
 use crate::tracker::TrackingState;
@@ -123,11 +125,27 @@ pub async fn generate_weekly_insights(
         }
     };
 
-    let llm = crate::ai::llm::LlmClient::new(config);
+    let llm = crate::ai::llm::LlmClient::new(config.clone());
 
-    crate::ai::summarizer::SummaryGenerator::generate_weekly_insights(&activities, &llm)
+    let raw_insight = crate::ai::summarizer::SummaryGenerator::generate_weekly_insights(&activities, &llm)
         .await
-        .map_err(|e| format!("AI error: {}", e))
+        .map_err(|e| format!("AI error: {}", e))?;
+
+    // Persist it
+    let insight = crate::storage::WeeklyInsight {
+        id: uuid::Uuid::new_v4().to_string(),
+        week_start_date: start_date,
+        raw_insight: raw_insight.clone(),
+        ai_provider: Some(format!("{:?}", config.provider)),
+        created_at: Some(chrono::Utc::now().to_rfc3339()),
+    };
+
+    state
+        .db
+        .upsert_weekly_insight(&insight)
+        .map_err(|e| format!("DB error: {}", e))?;
+
+    Ok(raw_insight)
 }
 
 /// Upsert a daily summary (used for editing).

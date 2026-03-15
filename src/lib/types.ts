@@ -105,3 +105,34 @@ export interface ProjectTag {
   project_name: string;
   created_at: string | null;
 }
+
+/** User achievement record */
+export interface Achievement {
+  id: string;
+  achievement_type: string;
+  name: string;
+  value: number;
+  earned_at: string;
+  metadata: string | null;
+}
+
+/** Gamification dashboard data */
+export interface GamificationData {
+  streak: number;
+  achievements: Achievement[];
+}
+
+/** AI-generated weekly insight */
+export interface WeeklyInsight {
+  id: string;
+  week_start_date: string;
+  raw_insight: string;
+  ai_provider: string;
+  created_at: string;
+}
+
+/** Calculated weekly trend data */
+export interface WeeklyTrend {
+  date: string;
+  productive_seconds: number;
+}

@@ -241,7 +241,7 @@ impl SummaryGenerator {
         prompt.push_str("- Comment on their meeting load if relevant.\n");
         prompt.push_str("- Provide exactly 1 actionable recommendation for next week.\n");
 
-        if llm.is_ready() && !llm.provider().is_local() {
+        if llm.is_ready() && llm.provider() != &crate::ai::llm::AiProvider::RuleBased {
              llm.complete(&prompt).await
         } else {
              // Fallback for rule-based or unconfigured

@@ -10,12 +10,14 @@
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Mutex;
+use chrono::Utc;
+use uuid::Uuid;
 
 use rusqlite::{params, Connection};
 
 use super::errors::StorageError;
 use super::migrations;
-use super::models::{ActivityLog, DailySummaryRecord, MeetingLog, ProjectTag, Achievement, WeeklyInsight};
+use super::models::{Achievement, ActivityLog, DailySummaryRecord, GamificationData, MeetingLog, ProjectTag, WeeklyInsight};
 
 /// Main database interface for IntelliWork.
 ///
@@ -507,6 +509,17 @@ impl Database {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(items)
+    }
+
+    /// Get aggregated data for the gamification dashboard.
+    pub fn get_gamification_data(&self) -> Result<GamificationData, StorageError> {
+        let streak = self.get_daily_streak_count()?;
+        let achievements = self.get_achievements()?;
+        
+        Ok(GamificationData {
+            streak,
+            achievements,
+        })
     }
 
     /// Get weekly insight for a specific week starting date.
