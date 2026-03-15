@@ -136,6 +136,9 @@ pub fn run() {
             commands::get_all_project_tags,
             commands::delete_project_tag,
             commands::insert_project_tag,
+            commands::get_gamification_data,
+            commands::get_weekly_insight,
+            commands::insert_achievement,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

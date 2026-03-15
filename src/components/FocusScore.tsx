@@ -11,6 +11,8 @@ import { Brain, Zap, ArrowRightLeft, Calendar, X } from "lucide-react";
 import type { ActivityLog } from "../hooks/useTauri";
 import { calculateFocusScore, generateNudges, type FocusScoreResult, type Nudge } from "../lib/focus-score";
 import { formatDuration } from "../lib/utils";
+import { calculateLevel } from "../lib/gamification";
+import { Trophy } from "lucide-react";
 
 interface FocusScoreProps {
   activities: ActivityLog[];
@@ -130,6 +132,26 @@ function BreakdownRow({
   );
 }
 
+function LevelBadge({ points }: { points: number }) {
+  const levelData = calculateLevel(points);
+  
+  return (
+    <div className="focus-score__level-badge animate-fade-in">
+        <div className="level-badge__header">
+            <Trophy size={14} className="level-badge__icon" />
+            <span className="level-badge__title">Level {levelData.level}: {levelData.title}</span>
+            <span className="level-badge__points">{levelData.points} pts</span>
+        </div>
+        <div className="level-badge__progress-track">
+            <div 
+                className="level-badge__progress-fill" 
+                style={{ width: `${levelData.progress}%` }} 
+            />
+        </div>
+    </div>
+  );
+}
+
 /* ─── Main Component ─── */
 
 export function FocusScore({ activities, compact = false }: FocusScoreProps) {
@@ -210,6 +232,8 @@ export function FocusScore({ activities, compact = false }: FocusScoreProps) {
           color="#7845f0"
         />
       </div>
+
+      <LevelBadge points={result.score * 15} />
 
       {/* Nudges */}
       {nudges.length > 0 && (

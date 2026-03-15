@@ -15,7 +15,7 @@ use rusqlite::{params, Connection};
 
 use super::errors::StorageError;
 use super::migrations;
-use super::models::{ActivityLog, DailySummaryRecord, MeetingLog, ProjectTag};
+use super::models::{ActivityLog, DailySummaryRecord, MeetingLog, ProjectTag, Achievement, WeeklyInsight};
 
 /// Main database interface for IntelliWork.
 ///
@@ -237,8 +237,8 @@ impl Database {
         self.conn()?.execute(
             "INSERT INTO meeting_logs \
              (id, activity_id, meeting_title, participants, \
-              meeting_type, source_app, calendar_event_id) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+              meeting_type, source_app, calendar_event_id, voice_note_path, ai_summary) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![
                 meeting.id,
                 meeting.activity_id,
@@ -247,6 +247,8 @@ impl Database {
                 meeting.meeting_type,
                 meeting.source_app,
                 meeting.calendar_event_id,
+                meeting.voice_note_path,
+                meeting.ai_summary,
             ],
         )?;
         Ok(meeting.id.clone())
@@ -260,7 +262,7 @@ impl Database {
         let conn = self.conn()?;
         let mut stmt = conn.prepare(
             "SELECT m.id, m.activity_id, m.meeting_title, m.participants, \
-             m.meeting_type, m.source_app, m.calendar_event_id, m.created_at \
+             m.meeting_type, m.source_app, m.calendar_event_id, m.voice_note_path, m.ai_summary, m.created_at \
              FROM meeting_logs m \
              JOIN activity_logs a ON m.activity_id = a.id \
              WHERE date(a.start_time) = ?1 \
@@ -277,7 +279,9 @@ impl Database {
                     meeting_type: row.get(4)?,
                     source_app: row.get(5)?,
                     calendar_event_id: row.get(6)?,
-                    created_at: row.get(7)?,
+                    voice_note_path: row.get(7)?,
+                    ai_summary: row.get(8)?,
+                    created_at: row.get(9)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -463,6 +467,103 @@ impl Database {
             .collect::<Result<HashMap<_, _>, _>>()?;
 
         Ok(config)
+    }
+
+    // ─── Gamification & Insights ───────────────────────────────
+
+    /// Insert an achievement record.
+    pub fn insert_achievement(&self, achievement: &Achievement) -> Result<(), StorageError> {
+        self.conn()?.execute(
+            "INSERT INTO achievements (id, achievement_type, name, value, earned_at, metadata) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![
+                achievement.id,
+                achievement.achievement_type,
+                achievement.name,
+                achievement.value,
+                achievement.earned_at,
+                achievement.metadata,
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// Get all achievements earned by the user.
+    pub fn get_achievements(&self) -> Result<Vec<Achievement>, StorageError> {
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare("SELECT id, achievement_type, name, value, earned_at, metadata FROM achievements ORDER BY earned_at DESC")?;
+        
+        let items = stmt
+            .query_map([], |row| {
+                Ok(Achievement {
+                    id: row.get(0)?,
+                    achievement_type: row.get(1)?,
+                    name: row.get(2)?,
+                    value: row.get(3)?,
+                    earned_at: row.get(4)?,
+                    metadata: row.get(5)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(items)
+    }
+
+    /// Get weekly insight for a specific week starting date.
+    pub fn get_weekly_insight(&self, week_start: &str) -> Result<Option<WeeklyInsight>, StorageError> {
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare("SELECT id, week_start_date, raw_insight, ai_provider, created_at FROM weekly_insights WHERE week_start_date = ?1")?;
+        
+        let mut rows = stmt.query_map(params![week_start], |row| {
+            Ok(WeeklyInsight {
+                id: row.get(0)?,
+                week_start_date: row.get(1)?,
+                raw_insight: row.get(2)?,
+                ai_provider: row.get(3)?,
+                created_at: row.get(4)?,
+            })
+        })?;
+
+        match rows.next() {
+            Some(row) => Ok(Some(row?)),
+            None => Ok(None),
+        }
+    }
+
+    /// Insert or update weekly insight.
+    pub fn upsert_weekly_insight(&self, insight: &WeeklyInsight) -> Result<(), StorageError> {
+        self.conn()?.execute(
+            "INSERT INTO weekly_insights (id, week_start_date, raw_insight, ai_provider) \
+             VALUES (?1, ?2, ?3, ?4) \
+             ON CONFLICT(week_start_date) DO UPDATE SET \
+             raw_insight = excluded.raw_insight, \
+             ai_provider = excluded.ai_provider",
+            params![
+                insight.id,
+                insight.week_start_date,
+                insight.raw_insight,
+                insight.ai_provider,
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// Calculate the current consecutive day streak of recorded activity.
+    pub fn get_daily_streak_count(&self) -> Result<i64, StorageError> {
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare(
+            "WITH RECURSIVE
+              dates(d) AS (
+                SELECT date(max(start_time)) FROM activity_logs
+                UNION ALL
+                SELECT date(d, '-1 day') FROM dates
+                WHERE EXISTS (SELECT 1 FROM activity_logs WHERE date(start_time) = date(d, '-1 day'))
+              )
+            SELECT count(*) FROM dates"
+        )?;
+
+        let count: i64 = stmt.query_row([], |row| row.get(0)).unwrap_or(0);
+        Ok(count)
     }
 
     // ─── Maintenance ───────────────────────────────────────────

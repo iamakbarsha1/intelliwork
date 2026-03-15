@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use super::errors::StorageError;
 
 /// Current schema version.
-const SCHEMA_VERSION: u32 = 3;
+const SCHEMA_VERSION: u32 = 4;
 
 /// Run all pending database migrations.
 ///
@@ -34,6 +34,10 @@ pub fn run_migrations(conn: &Connection) -> Result<(), StorageError> {
 
     if current_version < 3 {
         migrate_v3(conn)?;
+    }
+
+    if current_version < 4 {
+        migrate_v4(conn)?;
     }
 
     set_schema_version(conn, SCHEMA_VERSION)?;
@@ -187,6 +191,38 @@ fn migrate_v3(conn: &Connection) -> Result<(), StorageError> {
     Ok(())
 }
 
+/// Migration v4: Add achievements, weekly insights, and meeting voice notes
+fn migrate_v4(conn: &Connection) -> Result<(), StorageError> {
+    log::info!("Running migration v4: achievements and voice notes");
+    conn.execute_batch(
+        "
+        -- Achievement Tracking
+        CREATE TABLE IF NOT EXISTS achievements (
+            id              TEXT PRIMARY KEY,
+            type            TEXT NOT NULL, -- 'milestone', 'streak'
+            name            TEXT NOT NULL,
+            value           INTEGER DEFAULT 0,
+            earned_at       TEXT DEFAULT (datetime('now')),
+            metadata        TEXT -- JSON string
+        );
+
+        -- Weekly Insights Cache
+        CREATE TABLE IF NOT EXISTS weekly_insights (
+            id              TEXT PRIMARY KEY,
+            week_start_date TEXT NOT NULL UNIQUE,
+            raw_insight     TEXT NOT NULL,
+            ai_provider     TEXT,
+            created_at      TEXT DEFAULT (datetime('now'))
+        );
+
+        -- Add voice note columns to meeting_logs
+        ALTER TABLE meeting_logs ADD COLUMN voice_note_path TEXT;
+        ALTER TABLE meeting_logs ADD COLUMN ai_summary TEXT;
+        ",
+    )?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -205,7 +241,23 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(count, 4, "All 4 tables should exist");
+        assert_eq!(count, 4, "All 4 core tables should exist");
+    }
+
+    #[test]
+    fn test_migration_v4_creates_tables() {
+        let conn = Connection::open_in_memory().unwrap();
+        run_migrations(&conn).unwrap();
+
+        // Verify achievements and weekly_insights exist
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('achievements', 'weekly_insights')",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 2, "Achievements and Weekly Insights tables should exist");
     }
 
     #[test]
@@ -255,6 +307,6 @@ mod tests {
         run_migrations(&conn).unwrap();
 
         let version = get_schema_version(&conn).unwrap();
-        assert_eq!(version, 3);
+        assert_eq!(version, 4);
     }
 }

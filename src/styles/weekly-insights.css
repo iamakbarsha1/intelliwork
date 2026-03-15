@@ -1,0 +1,257 @@
+/* ============================================
+   Weekly Insights — Strategic AI Analysis
+   ============================================ */
+
+.weekly-insights {
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s ease;
+}
+
+.weekly-insights:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.weekly-insights__header {
+  padding: var(--space-8);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to right, var(--color-surface), var(--color-surface-hover));
+}
+
+.weekly-insights__header-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.weekly-insights__icon-container {
+  padding: var(--space-3);
+  border-radius: var(--radius-xl);
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+}
+
+.weekly-insights__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.weekly-insights__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+.weekly-insights__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.weekly-insights__date-input {
+  padding: var(--space-2) var(--space-4);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.weekly-insights__date-input:focus {
+  border-color: #00ff88;
+}
+
+.weekly-insights__generate-btn {
+  padding: var(--space-2) var(--space-6);
+  background: #00ff88;
+  color: #000;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+.weekly-insights__generate-btn:hover:not(:disabled) {
+  background: #00ffcc;
+  transform: translateY(-1px);
+}
+
+.weekly-insights__generate-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.weekly-insights__generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.weekly-insights__body {
+  padding: var(--space-8);
+  min-height: 400px;
+}
+
+/* ─── Cards Grid ─── */
+.weekly-insights__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.weekly-insights__card {
+  padding: var(--space-6);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  height: 100%;
+}
+
+.weekly-insights__card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.weekly-insights__card-label {
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.weekly-insights__card-content {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* ─── Hero Insight section ─── */
+.weekly-insights__hero {
+  padding: var(--space-8);
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), transparent);
+  border: 1px solid rgba(0, 255, 136, 0.1);
+  border-radius: var(--radius-2xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.weekly-insights__hero-icon {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.weekly-insights__hero-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-4);
+}
+
+.weekly-insights__hero-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  position: relative;
+  z-index: 10;
+}
+
+/* ─── Empty State ─── */
+.weekly-insights__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-2xl);
+  text-align: center;
+}
+
+.weekly-insights__empty-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+  color: var(--color-text-tertiary);
+}
+
+.weekly-insights__empty-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-2);
+}
+
+.weekly-insights__empty-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  max-width: 400px;
+  margin-bottom: var(--space-8);
+}
+
+.weekly-insights__empty-btn {
+  padding: var(--space-3) var(--space-8);
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.weekly-insights__empty-btn:hover {
+  background: var(--color-primary-faint);
+  border-color: var(--color-primary);
+}
+
+.weekly-insights__footer {
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weekly-insights__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: var(--color-surface);
+  border-radius: var(--radius-3xl);
+  border: 1px solid var(--color-border);
+  text-align: center;
+}

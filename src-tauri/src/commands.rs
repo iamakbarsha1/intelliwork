@@ -307,3 +307,41 @@ pub fn insert_project_tag(
     Ok(())
 }
 
+/// Get aggregated gamification data (streak and achievements).
+#[tauri::command]
+pub fn get_gamification_data(
+    state: State<'_, AppState>,
+) -> Result<crate::storage::GamificationData, String> {
+    state
+        .db
+        .get_gamification_data()
+        .map_err(|e| format!("DB error: {}", e))
+}
+
+/// Get a weekly insight record for a given week start date.
+#[tauri::command]
+pub fn get_weekly_insight(
+    state: State<'_, AppState>,
+    week_start: String,
+) -> Result<Option<crate::storage::WeeklyInsight>, String> {
+    state
+        .db
+        .get_weekly_insight(&week_start)
+        .map_err(|e| format!("DB error: {}", e))
+}
+
+/// Manually insert an achievement (e.g. from UI or background checks).
+#[tauri::command]
+pub fn insert_achievement(
+    state: State<'_, AppState>,
+    name: String,
+    achievement_type: String,
+    value: i64,
+) -> Result<(), String> {
+    let achievement = crate::storage::Achievement::new(&achievement_type, &name, value);
+    state
+        .db
+        .insert_achievement(&achievement)
+        .map_err(|e| format!("DB error: {}", e))
+}
+

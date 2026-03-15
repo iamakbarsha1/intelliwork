@@ -143,6 +143,8 @@ pub struct MeetingLog {
     pub meeting_type: String,
     pub source_app: String,
     pub calendar_event_id: Option<String>,
+    pub voice_note_path: Option<String>,
+    pub ai_summary: Option<String>,
     pub created_at: Option<String>,
 }
 
@@ -162,6 +164,8 @@ impl MeetingLog {
             meeting_type: meeting_type.to_string(),
             source_app: source_app.to_string(),
             calendar_event_id: None,
+            voice_note_path: None,
+            ai_summary: None,
             created_at: Some(Utc::now().to_rfc3339()),
         }
     }
@@ -224,5 +228,58 @@ impl ProjectTag {
             created_at: Some(Utc::now().to_rfc3339()),
         }
     }
+}
+
+/// Achievement record for gamification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Achievement {
+    pub id: String,
+    pub achievement_type: String, // 'milestone', 'streak'
+    pub name: String,
+    pub value: i64,
+    pub earned_at: Option<String>,
+    pub metadata: Option<String>, // JSON string
+}
+
+impl Achievement {
+    pub fn new(achievement_type: &str, name: &str, value: i64) -> Self {
+        Self {
+            id: uuid::Uuid::new_v4().to_string(),
+            achievement_type: achievement_type.to_string(),
+            name: name.to_string(),
+            value,
+            earned_at: Some(Utc::now().to_rfc3339()),
+            metadata: None,
+        }
+    }
+}
+
+/// Cached weekly AI insights.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WeeklyInsight {
+    pub id: String,
+    pub week_start_date: String,
+    pub raw_insight: String,
+    pub ai_provider: Option<String>,
+    pub created_at: Option<String>,
+}
+
+impl WeeklyInsight {
+    pub fn new(week_start_date: &str, raw_insight: &str, ai_provider: &str) -> Self {
+        Self {
+            id: uuid::Uuid::new_v4().to_string(),
+            week_start_date: week_start_date.to_string(),
+            raw_insight: raw_insight.to_string(),
+            ai_provider: Some(ai_provider.to_string()),
+            created_at: Some(Utc::now().to_rfc3339()),
+        }
+    }
+}
+
+/// Aggregated data for gamification dashboard.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GamificationData {
+    pub streak: i64,
+    pub achievements: Vec<Achievement>,
 }
 
