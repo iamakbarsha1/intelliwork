@@ -74,6 +74,7 @@ pub struct ActivityLog {
     pub confidence: f64,
     pub is_meeting: bool,
     pub is_idle: bool,
+    pub browser_url: Option<String>,
     pub created_at: Option<String>,
 }
 
@@ -90,6 +91,7 @@ impl Default for ActivityLog {
             confidence: 0.0,
             is_meeting: false,
             is_idle: false,
+            browser_url: None,
             created_at: Some(Utc::now().to_rfc3339()),
         }
     }
@@ -113,6 +115,7 @@ impl ActivityLog {
             confidence: 0.0,
             is_meeting: false,
             is_idle: false,
+            browser_url: None,
             created_at: Some(Utc::now().to_rfc3339()),
         }
     }

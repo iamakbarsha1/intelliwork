@@ -71,8 +71,8 @@ impl Database {
         self.conn()?.execute(
             "INSERT INTO activity_logs \
              (id, app_name, window_title, start_time, end_time, \
-              duration_seconds, category, confidence, is_meeting, is_idle) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+              duration_seconds, category, confidence, is_meeting, is_idle, browser_url) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             params![
                 activity.id,
                 activity.app_name,
@@ -84,6 +84,7 @@ impl Database {
                 activity.confidence,
                 activity.is_meeting as i32,
                 activity.is_idle as i32,
+                activity.browser_url,
             ],
         )?;
         Ok(activity.id.clone())
@@ -97,7 +98,7 @@ impl Database {
         let conn = self.conn()?;
         let mut stmt = conn.prepare(
             "SELECT id, app_name, window_title, start_time, end_time, \
-             duration_seconds, category, confidence, is_meeting, is_idle, created_at \
+             duration_seconds, category, confidence, is_meeting, is_idle, browser_url, created_at \
              FROM activity_logs \
              WHERE date(start_time) = ?1 \
              ORDER BY start_time ASC",
@@ -116,7 +117,8 @@ impl Database {
                     confidence: row.get(7)?,
                     is_meeting: row.get::<_, i32>(8)? != 0,
                     is_idle: row.get::<_, i32>(9)? != 0,
-                    created_at: row.get(10)?,
+                    browser_url: row.get(10)?,
+                    created_at: row.get(11)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -453,6 +455,7 @@ mod tests {
             confidence: 0.95,
             is_meeting: false,
             is_idle: false,
+            browser_url: None,
             created_at: None,
         }
     }

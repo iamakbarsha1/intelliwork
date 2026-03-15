@@ -30,6 +30,8 @@ pub struct AppInfo {
     pub bundle_id: Option<String>,
     /// Whether the app is considered a meeting application
     pub is_meeting_app: bool,
+    /// The active browser URL if the app is a browser
+    pub browser_url: Option<String>,
 }
 
 impl AppInfo {
@@ -40,6 +42,7 @@ impl AppInfo {
             window_title: None,
             bundle_id: None,
             is_meeting_app: false,
+            browser_url: None,
         }
     }
 }

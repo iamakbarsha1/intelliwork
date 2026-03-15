@@ -323,6 +323,11 @@ function ActivityCard({ activity, onDelete }: ActivityCardProps) {
             {activity.window_title}
           </span>
         )}
+        {activity.browser_url && (
+          <span className="activity-card__title text-tertiary" style={{ fontSize: "0.85em", marginTop: "4px", wordBreak: "break-all" }}>
+            🔗 <a href={activity.browser_url} target="_blank" rel="noreferrer" style={{ color: "var(--color-primary)", textDecoration: "none" }}>{activity.browser_url}</a>
+          </span>
+        )}
         <div className="activity-card__meta">
           <span
             className="badge"
@@ -419,6 +424,11 @@ function AccordionCard({ group, onDelete }: AccordionCardProps) {
                   <span className="text-secondary" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {act.window_title || "Unknown Window"}
                   </span>
+                  {act.browser_url && (
+                    <span className="text-tertiary" style={{ fontSize: "0.85em", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      🔗 <a href={act.browser_url} target="_blank" rel="noreferrer" style={{ color: "var(--color-primary)", textDecoration: "none" }}>{act.browser_url}</a>
+                    </span>
+                  )}
                    <div style={{ display: "flex", gap: "var(--space-2)" }}>
                      {act.is_meeting && <span className="text-tertiary"><Users size={12} /></span>}
                      {act.is_idle && <span className="text-tertiary"><Moon size={12} /></span>}
