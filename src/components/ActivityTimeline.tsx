@@ -5,7 +5,8 @@
 import { useState, useMemo } from "react";
 import { type ActivityLog } from "../hooks/useTauri";
 import { formatDuration, formatTime, getCategoryColor } from "../lib/utils";
-import { List, Trash2, Users, Moon, ChevronDown, ChevronRight, Layers, LayoutList } from "lucide-react";
+import { List, Trash2, Users, Moon, ChevronDown, ChevronRight, Layers, LayoutList, Tag } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
 
 export interface GroupedActivity {
   id: string; // Artificial ID based on start time
@@ -30,9 +31,10 @@ interface ActivityTimelineProps {
   loading: boolean;
   onDelete?: (id: string) => void;
   onDeleteAll?: () => void;
+  onTagged?: () => void;  // callback to refresh activities after tagging
 }
 
-export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }: ActivityTimelineProps) {
+export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll, onTagged }: ActivityTimelineProps) {
   const [viewMode, setViewMode] = useState<"smart" | "raw">("smart");
   
   // Extract unique categories available today for filter pills
@@ -254,9 +256,9 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }:
                  {/* Render Items */}
                  {group.items.map((item) => {
                    if ("isGroup" in item) {
-                     return <AccordionCard key={item.id} group={item} onDelete={onDelete} />;
+                     return <AccordionCard key={item.id} group={item} onDelete={onDelete} onTagged={onTagged} />;
                    } else {
-                     return <ActivityCard key={item.id} activity={item} onDelete={onDelete ? () => onDelete(item.id) : undefined} />;
+                     return <ActivityCard key={item.id} activity={item} onDelete={onDelete ? () => onDelete(item.id) : undefined} onTagged={onTagged} />;
                    }
                  })}
               </div>
@@ -267,6 +269,7 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }:
                 key={activity.id} 
                 activity={activity} 
                 onDelete={onDelete ? () => onDelete(activity.id) : undefined}
+                onTagged={onTagged}
               />
             ))
           )}
@@ -279,10 +282,38 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll }:
 interface ActivityCardProps {
   activity: ActivityLog;
   onDelete?: () => void;
+  onTagged?: () => void;
 }
 
-function ActivityCard({ activity, onDelete }: ActivityCardProps) {
+function ActivityCard({ activity, onDelete, onTagged }: ActivityCardProps) {
   const categoryColor = getCategoryColor(activity.category);
+  const [tagging, setTagging] = useState(false);
+
+  const handleTagActivity = async () => {
+    const pattern = window.prompt(
+      `Enter a keyword from the window title to match (e.g. "auth-service"):`,
+      activity.window_title?.split("/").slice(-2, -1)[0] ?? activity.app_name
+    );
+    if (!pattern) return;
+    const projectName = window.prompt(`Project name for matching "${pattern}":`, "");
+    if (!projectName) return;
+    try {
+      setTagging(true);
+      await invoke("insert_project_tag", {
+        tag: {
+          id: crypto.randomUUID(),
+          title_pattern: pattern,
+          project_name: projectName,
+          created_at: new Date().toISOString(),
+        },
+      });
+      onTagged?.();
+    } catch (e) {
+      alert(`Failed to save tag: ${e}`);
+    } finally {
+      setTagging(false);
+    }
+  };
 
   return (
     <div
@@ -302,21 +333,32 @@ function ActivityCard({ activity, onDelete }: ActivityCardProps) {
             </span>
           </div>
           
-          {onDelete && (
-              <button 
-                className="btn btn--secondary" 
-                style={{ padding: "var(--space-1) var(--space-2)", background: "transparent", border: "none", color: "var(--color-danger)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (window.confirm(`Delete activity: ${activity.app_name}?`)) {
-                    onDelete();
-                  }
-                }}
-                title="Delete activity"
-              >
-                <Trash2 size={16} />
-              </button>
-          )}
+          <div style={{ display: "flex", gap: "var(--space-1)", alignItems: "center" }}>
+            <button
+              className="btn btn--secondary"
+              style={{ padding: "var(--space-1) var(--space-2)", background: "transparent", border: "none", color: "var(--color-primary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: tagging ? 0.5 : 1 }}
+              onClick={handleTagActivity}
+              title="Tag as project"
+              disabled={tagging}
+            >
+              <Tag size={14} />
+            </button>
+            {onDelete && (
+                <button 
+                  className="btn btn--secondary" 
+                  style={{ padding: "var(--space-1) var(--space-2)", background: "transparent", border: "none", color: "var(--color-danger)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`Delete activity: ${activity.app_name}?`)) {
+                      onDelete();
+                    }
+                  }}
+                  title="Delete activity"
+                >
+                  <Trash2 size={16} />
+                </button>
+            )}
+          </div>
         </div>
         {activity.window_title && (
           <span className="activity-card__title text-tertiary">
@@ -335,6 +377,14 @@ function ActivityCard({ activity, onDelete }: ActivityCardProps) {
           >
             {activity.category}
           </span>
+          {activity.project && (
+            <span
+              className="badge"
+              style={{ backgroundColor: "hsla(175,60%,40%,0.15)", color: "hsl(175,60%,55%)", display: "flex", alignItems: "center", gap: "3px" }}
+            >
+              <Tag size={10} /> {activity.project}
+            </span>
+          )}
           {activity.is_meeting && (
             <span className="badge badge--meeting"><Users size={12} /> Meeting</span>
           )}
@@ -353,9 +403,10 @@ function ActivityCard({ activity, onDelete }: ActivityCardProps) {
 interface AccordionCardProps {
   group: GroupedActivity;
   onDelete?: (id: string) => void;
+  onTagged?: () => void;
 }
 
-function AccordionCard({ group, onDelete }: AccordionCardProps) {
+function AccordionCard({ group, onDelete, onTagged }: AccordionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const categoryColor = getCategoryColor(group.category);
 
@@ -437,6 +488,22 @@ function AccordionCard({ group, onDelete }: AccordionCardProps) {
                 
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                   <span className="text-tertiary">{formatDuration(act.duration_seconds)}</span>
+                  <button
+                    title="Tag as project"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const pat = window.prompt("Keyword to match:", act.window_title ?? act.app_name);
+                      if (!pat) return;
+                      const proj = window.prompt(`Project for "${pat}":`, "");
+                      if (!proj) return;
+                      invoke("insert_project_tag", { tag: { id: crypto.randomUUID(), title_pattern: pat, project_name: proj, created_at: new Date().toISOString() } })
+                        .then(() => onTagged?.())
+                        .catch((err) => alert(`Error: ${err}`));
+                    }}
+                    style={{ background: "none", border: "none", color: "var(--color-primary)", cursor: "pointer", opacity: 0.7 }}
+                  >
+                    <Tag size={12} />
+                  </button>
                   {onDelete && (
                     <button 
                       onClick={(e) => {

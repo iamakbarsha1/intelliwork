@@ -15,6 +15,7 @@ export interface TrackingState {
   current_app: string | null;
   current_window: string | null;
   current_category: string;
+  current_project: string | null;
   session_duration_seconds: number;
   today_total_seconds: number;
 }
@@ -32,6 +33,7 @@ export interface ActivityLog {
   is_meeting: boolean;
   is_idle: boolean;
   browser_url?: string | null;
+  project?: string | null;
   created_at: string | null;
 }
 
@@ -251,4 +253,60 @@ export function useWeeklyInsight() {
   }, []);
 
   return { insight, loading, error, generate };
+}
+
+/** Project tag type */
+export interface ProjectTag {
+  id: string;
+  title_pattern: string;
+  project_name: string;
+  created_at: string | null;
+}
+
+/** Hook: project tags CRUD */
+export function useProjectTags() {
+  const [tags, setTags] = useState<ProjectTag[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await invoke<ProjectTag[]>("get_all_project_tags");
+      setTags(result);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const addTag = useCallback(
+    async (titlePattern: string, projectName: string) => {
+      const tag: ProjectTag = {
+        id: crypto.randomUUID(),
+        title_pattern: titlePattern,
+        project_name: projectName,
+        created_at: new Date().toISOString(),
+      };
+      await invoke("insert_project_tag", { tag });
+      await refresh();
+    },
+    [refresh]
+  );
+
+  const removeTag = useCallback(
+    async (id: string) => {
+      await invoke("delete_project_tag", { id });
+      await refresh();
+    },
+    [refresh]
+  );
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { tags, loading, error, refresh, addTag, removeTag };
 }

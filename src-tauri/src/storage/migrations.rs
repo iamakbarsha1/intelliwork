@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use super::errors::StorageError;
 
 /// Current schema version.
-const SCHEMA_VERSION: u32 = 2;
+const SCHEMA_VERSION: u32 = 3;
 
 /// Run all pending database migrations.
 ///
@@ -30,6 +30,10 @@ pub fn run_migrations(conn: &Connection) -> Result<(), StorageError> {
 
     if current_version < 2 {
         migrate_v2(conn)?;
+    }
+
+    if current_version < 3 {
+        migrate_v3(conn)?;
     }
 
     set_schema_version(conn, SCHEMA_VERSION)?;
@@ -165,6 +169,24 @@ fn migrate_v2(conn: &Connection) -> Result<(), StorageError> {
     Ok(())
 }
 
+/// Migration v3: Add project to activity_logs and create project_tags table
+fn migrate_v3(conn: &Connection) -> Result<(), StorageError> {
+    log::info!("Running migration v3: add project tags");
+    conn.execute_batch(
+        "
+        ALTER TABLE activity_logs ADD COLUMN project TEXT;
+
+        CREATE TABLE IF NOT EXISTS project_tags (
+            id              TEXT PRIMARY KEY,
+            title_pattern   TEXT NOT NULL UNIQUE,
+            project_name    TEXT NOT NULL,
+            created_at      TEXT DEFAULT (datetime('now'))
+        );
+        ",
+    )?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -233,6 +255,6 @@ mod tests {
         run_migrations(&conn).unwrap();
 
         let version = get_schema_version(&conn).unwrap();
-        assert_eq!(version, 2);
+        assert_eq!(version, 3);
     }
 }

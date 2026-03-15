@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { Settings } from "lucide-react";
+import { ProjectTagsPanel } from "./ProjectTagsPanel";
 
 interface SettingsPanelProps {
   config: Record<string, string>;
@@ -122,6 +123,8 @@ export function SettingsPanel({ config, onUpdate }: SettingsPanelProps) {
           </select>
         </SettingRow>
       </div>
+
+      <ProjectTagsPanel />
     </div>
   );
 }

@@ -30,6 +30,7 @@ export interface ActivityLog {
   is_meeting: boolean;
   is_idle: boolean;
   browser_url?: string | null;
+  project?: string | null;
 }
 
 /** Meeting-specific metadata */
@@ -95,4 +96,12 @@ export interface AppInfo {
   name: string;
   version: string;
   description: string;
+}
+
+/** A project tagging rule — pattern ↔ project name mapping */
+export interface ProjectTag {
+  id: string;
+  title_pattern: string;
+  project_name: string;
+  created_at: string | null;
 }

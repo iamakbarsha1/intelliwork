@@ -15,7 +15,7 @@ use rusqlite::{params, Connection};
 
 use super::errors::StorageError;
 use super::migrations;
-use super::models::{ActivityLog, DailySummaryRecord, MeetingLog};
+use super::models::{ActivityLog, DailySummaryRecord, MeetingLog, ProjectTag};
 
 /// Main database interface for IntelliWork.
 ///
@@ -71,8 +71,8 @@ impl Database {
         self.conn()?.execute(
             "INSERT INTO activity_logs \
              (id, app_name, window_title, start_time, end_time, \
-              duration_seconds, category, confidence, is_meeting, is_idle, browser_url) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+              duration_seconds, category, confidence, is_meeting, is_idle, browser_url, project) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
             params![
                 activity.id,
                 activity.app_name,
@@ -85,6 +85,7 @@ impl Database {
                 activity.is_meeting as i32,
                 activity.is_idle as i32,
                 activity.browser_url,
+                activity.project,
             ],
         )?;
         Ok(activity.id.clone())
@@ -98,7 +99,7 @@ impl Database {
         let conn = self.conn()?;
         let mut stmt = conn.prepare(
             "SELECT id, app_name, window_title, start_time, end_time, \
-             duration_seconds, category, confidence, is_meeting, is_idle, browser_url, created_at \
+             duration_seconds, category, confidence, is_meeting, is_idle, browser_url, project, created_at \
              FROM activity_logs \
              WHERE date(start_time) = ?1 \
              ORDER BY start_time ASC",
@@ -118,7 +119,8 @@ impl Database {
                     is_meeting: row.get::<_, i32>(8)? != 0,
                     is_idle: row.get::<_, i32>(9)? != 0,
                     browser_url: row.get(10)?,
-                    created_at: row.get(11)?,
+                    project: row.get(11)?,
+                    created_at: row.get(12)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -135,7 +137,7 @@ impl Database {
         let conn = self.conn()?;
         let mut stmt = conn.prepare(
             "SELECT id, app_name, window_title, start_time, end_time, \
-             duration_seconds, category, confidence, is_meeting, is_idle, created_at \
+             duration_seconds, category, confidence, is_meeting, is_idle, browser_url, project, created_at \
              FROM activity_logs \
              WHERE date(start_time) >= ?1 AND date(start_time) <= ?2 \
              ORDER BY start_time ASC",
@@ -154,7 +156,9 @@ impl Database {
                     confidence: row.get(7)?,
                     is_meeting: row.get::<_, i32>(8)? != 0,
                     is_idle: row.get::<_, i32>(9)? != 0,
-                    created_at: row.get(10)?,
+                    browser_url: row.get(10)?,
+                    project: row.get(11)?,
+                    created_at: row.get(12)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -350,6 +354,66 @@ impl Database {
         }
     }
 
+    // ─── Project Tags CRUD ─────────────────────────────────────
+
+    /// Insert a new project tag.
+    pub fn insert_project_tag(&self, tag: &ProjectTag) -> Result<(), StorageError> {
+        self.conn()?.execute(
+            "INSERT INTO project_tags (id, title_pattern, project_name) \
+             VALUES (?1, ?2, ?3)",
+            params![tag.id, tag.title_pattern, tag.project_name],
+        )?;
+        Ok(())
+    }
+
+    /// Get all project tags.
+    pub fn get_all_project_tags(&self) -> Result<Vec<ProjectTag>, StorageError> {
+        let conn = self.conn()?;
+        let mut stmt = conn.prepare("SELECT id, title_pattern, project_name, created_at FROM project_tags")?;
+        
+        let tags = stmt
+            .query_map([], |row| {
+                Ok(ProjectTag {
+                    id: row.get(0)?,
+                    title_pattern: row.get(1)?,
+                    project_name: row.get(2)?,
+                    created_at: row.get(3)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(tags)
+    }
+
+    /// Delete a project tag by ID.
+    pub fn delete_project_tag(&self, id: &str) -> Result<usize, StorageError> {
+        let count = self.conn()?.execute(
+            "DELETE FROM project_tags WHERE id = ?1",
+            params![id],
+        )?;
+        Ok(count)
+    }
+
+    /// Retroactively apply a project tag to all matching historical activities.
+    ///
+    /// Updates `activity_logs.project` for any row whose `window_title` or
+    /// `browser_url` contains the tag's `title_pattern` (case-insensitive).
+    /// Returns the number of updated rows.
+    pub fn apply_project_tag(&self, tag: &ProjectTag) -> Result<usize, StorageError> {
+        if tag.title_pattern.is_empty() {
+            return Ok(0);
+        }
+        let pattern = format!("%{}%", tag.title_pattern.to_lowercase());
+        let count = self.conn()?.execute(
+            "UPDATE activity_logs \
+             SET project = ?1 \
+             WHERE lower(coalesce(window_title, '')) LIKE ?2 \
+                OR lower(coalesce(browser_url,  '')) LIKE ?2",
+            params![tag.project_name, pattern],
+        )?;
+        Ok(count)
+    }
+
     // ─── Config CRUD ───────────────────────────────────────────
 
     /// Get a configuration value by key.
@@ -433,7 +497,7 @@ impl Database {
 mod tests {
     use super::*;
     use crate::storage::models::{
-        ActivityLog, DailySummaryRecord, MeetingLog,
+        ActivityLog, DailySummaryRecord, MeetingLog, ProjectTag,
     };
 
     fn create_test_db() -> Database {
@@ -456,6 +520,7 @@ mod tests {
             is_meeting: false,
             is_idle: false,
             browser_url: None,
+            project: None,
             created_at: None,
         }
     }
