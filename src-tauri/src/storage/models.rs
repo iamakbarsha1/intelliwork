@@ -75,6 +75,7 @@ pub struct ActivityLog {
     pub is_meeting: bool,
     pub is_idle: bool,
     pub browser_url: Option<String>,
+    pub project: Option<String>,
     pub created_at: Option<String>,
 }
 
@@ -92,6 +93,7 @@ impl Default for ActivityLog {
             is_meeting: false,
             is_idle: false,
             browser_url: None,
+            project: None,
             created_at: Some(Utc::now().to_rfc3339()),
         }
     }
@@ -116,6 +118,7 @@ impl ActivityLog {
             is_meeting: false,
             is_idle: false,
             browser_url: None,
+            project: None,
             created_at: Some(Utc::now().to_rfc3339()),
         }
     }
@@ -202,3 +205,24 @@ impl DailySummaryRecord {
         }
     }
 }
+
+/// A manual project tag rule for auto-learning.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectTag {
+    pub id: String,
+    pub title_pattern: String,
+    pub project_name: String,
+    pub created_at: Option<String>,
+}
+
+impl ProjectTag {
+    pub fn new(title_pattern: &str, project_name: &str) -> Self {
+        Self {
+            id: uuid::Uuid::new_v4().to_string(),
+            title_pattern: title_pattern.to_string(),
+            project_name: project_name.to_string(),
+            created_at: Some(Utc::now().to_rfc3339()),
+        }
+    }
+}
+

@@ -261,3 +261,49 @@ pub fn export_csv(
 
     Ok(())
 }
+
+/// Get all project tags
+#[tauri::command]
+pub fn get_all_project_tags(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::storage::ProjectTag>, String> {
+    state
+        .db
+        .get_all_project_tags()
+        .map_err(|e| format!("DB error: {}", e))
+}
+
+/// Delete a project tag
+#[tauri::command]
+pub fn delete_project_tag(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<usize, String> {
+    state
+        .db
+        .delete_project_tag(&id)
+        .map_err(|e| format!("DB error: {}", e))
+}
+
+/// Insert a project tag and optionally retroactively update past activities
+#[tauri::command]
+pub fn insert_project_tag(
+    state: State<'_, AppState>,
+    tag: crate::storage::ProjectTag,
+) -> Result<(), String> {
+    state
+        .db
+        .insert_project_tag(&tag)
+        .map_err(|e| format!("DB error: {}", e))?;
+
+    // Retroactively update past activities to accurately reflect the tag
+    // We can do this in the database directly
+    state.db.apply_project_tag(&tag).map_err(|e| format!("DB update error: {}", e))?;
+    
+    // Also, we must reload the rules in tracker!
+    let mut tracker = state.tracker.lock().map_err(|e| format!("Lock error: {}", e))?;
+    tracker.reload_project_tags()?;
+
+    Ok(())
+}
+

@@ -5,6 +5,7 @@ import { Zap, LayoutDashboard, Settings, Sun, Moon, AlertTriangle, Activity } fr
 import { TrackingToggle } from "./components/TrackingToggle";
 import { ActivityTimeline } from "./components/ActivityTimeline";
 import { CategoryChart } from "./components/CategoryChart";
+import { ProjectBreakdown } from "./components/ProjectBreakdown";
 import { DailySummary } from "./components/DailySummary";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { ConsentScreen } from "./components/ConsentScreen";
@@ -166,6 +167,7 @@ function App() {
               <FocusScore activities={activities} />
               <DailySummary date={today} activities={activities} />
               <CategoryChart activities={activities} />
+              <ProjectBreakdown activities={activities} />
             </div>
 
             {/* Right Column: Timeline */}
@@ -175,6 +177,7 @@ function App() {
                 loading={activitiesLoading} 
                 onDelete={(id) => deleteActivities([id])}
                 onDeleteAll={() => deleteActivities(activities.map(a => a.id))}
+                onTagged={refreshActivities}
               />
             </div>
           </div>

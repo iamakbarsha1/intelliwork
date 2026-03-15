@@ -30,6 +30,7 @@ pub struct TrackingState {
     pub current_app: Option<String>,
     pub current_window: Option<String>,
     pub current_category: String,
+    pub current_project: Option<String>,
     pub session_duration_seconds: i64,
     pub today_total_seconds: i64,
 }
@@ -42,6 +43,7 @@ impl Default for TrackingState {
             current_app: None,
             current_window: None,
             current_category: "Uncategorized".to_string(),
+            current_project: None,
             session_duration_seconds: 0,
             today_total_seconds: 0,
         }
@@ -238,6 +240,9 @@ impl ActivityTracker {
         activity.confidence = class_result.confidence;
         
         activity.browser_url = app_info.browser_url.clone();
+        
+        // Check for project matching
+        activity.project = self.determine_project(app_info);
 
         log::debug!(
             "App switch: {} → {}",
@@ -283,6 +288,23 @@ impl ActivityTracker {
         }
     }
 
+    /// Determine the project for a given app info by matching against project tags.
+    fn determine_project(&self, app_info: &AppInfo) -> Option<String> {
+        let tags = self.db.get_all_project_tags().unwrap_or_default();
+        let target_str = app_info.window_title.as_deref().unwrap_or("");
+        let url_str = app_info.browser_url.as_deref().unwrap_or("");
+
+        for tag in tags {
+            if !tag.title_pattern.is_empty() {
+                let pattern = tag.title_pattern.to_lowercase();
+                if target_str.to_lowercase().contains(&pattern) || url_str.to_lowercase().contains(&pattern) {
+                    return Some(tag.project_name);
+                }
+            }
+        }
+        None
+    }
+
     /// Flush pending activities and meetings to the database.
     ///
     /// Called periodically (every 30s) and on stop.
@@ -311,16 +333,17 @@ impl ActivityTracker {
 
     /// Get the current tracking state for the frontend.
     pub fn get_state(&self) -> TrackingState {
-        let (current_app, current_window) = self
+        let (current_app, current_window, current_project) = self
             .current_activity
             .as_ref()
             .map(|a| {
                 (
                     Some(a.app_name.clone()),
                     a.window_title.clone(),
+                    a.project.clone(),
                 )
             })
-            .unwrap_or((None, None));
+            .unwrap_or((None, None, None));
 
         let is_idle = *self.idle_detector.current_state() == IdleState::Idle;
 
@@ -334,6 +357,7 @@ impl ActivityTracker {
                 .as_ref()
                 .map(|a| a.category.clone())
                 .unwrap_or_else(|| "Uncategorized".to_string()),
+            current_project,
             session_duration_seconds: self
                 .current_activity
                 .as_ref()
@@ -389,6 +413,20 @@ impl ActivityTracker {
             end_time: end,
         });
 
+        Ok(())
+    }
+
+    /// Reload project tag rules.
+    ///
+    /// The tracker queries project_tags fresh from the DB on every `determine_project()`
+    /// call, so no in-memory cache needs invalidating. This method exists so that
+    /// `commands::insert_project_tag` can signal a reload without a compile error.
+    pub fn reload_project_tags(&mut self) -> Result<(), String> {
+        // Eagerly verify we can still read the table (surfaces DB errors early).
+        self.db
+            .get_all_project_tags()
+            .map_err(|e| format!("Failed to reload project tags: {}", e))?;
+        log::debug!("Project tags reloaded");
         Ok(())
     }
 }
