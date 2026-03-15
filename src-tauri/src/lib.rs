@@ -139,6 +139,7 @@ pub fn run() {
             commands::get_gamification_data,
             commands::get_weekly_insight,
             commands::insert_achievement,
+            commands::generate_daily_coach_tips,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

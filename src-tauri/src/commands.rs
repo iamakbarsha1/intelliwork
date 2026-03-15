@@ -148,6 +148,44 @@ pub async fn generate_weekly_insights(
     Ok(raw_insight)
 }
 
+/// Generate AI daily coach tips
+#[tauri::command]
+pub async fn generate_daily_coach_tips(
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    // Get yesterday's date
+    let yesterday = chrono::Utc::now() - chrono::Duration::days(1);
+    let date_str = yesterday.format("%Y-%m-%d").to_string();
+
+    let activities = state
+        .db
+        .get_activities_for_date(&date_str)
+        .map_err(|e| format!("DB error: {}", e))?;
+
+    let config = {
+        let ai_provider_str = state
+            .db
+            .get_config("ai_provider")
+            .unwrap_or(None)
+            .unwrap_or_else(|| "rule_based".to_string());
+        
+        let api_key = state.db.get_config("ai_api_key").unwrap_or(None);
+
+        crate::ai::llm::LlmConfig {
+            provider: crate::ai::llm::AiProvider::from_str_safe(&ai_provider_str),
+            api_key,
+            model: "gpt-4o-mini".to_string(),
+            ..Default::default()
+        }
+    };
+
+    let llm = crate::ai::llm::LlmClient::new(config);
+
+    crate::ai::coach::generate_daily_coach_tips(&activities, &llm)
+        .await
+        .map_err(|e| format!("AI error: {}", e))
+}
+
 /// Upsert a daily summary (used for editing).
 #[tauri::command]
 pub fn upsert_summary(

@@ -122,6 +122,22 @@ export function SettingsPanel({ config, onUpdate }: SettingsPanelProps) {
             <option value="gemini">Google Gemini</option>
           </select>
         </SettingRow>
+
+        {config.ai_provider === "openai" && (
+          <SettingRow
+            label="OpenAI API Key"
+            description="Stored locally and encrypted"
+          >
+            <input
+              type="password"
+              className="settings__input"
+              value={config.openai_api_key ?? ""}
+              placeholder="sk-..."
+              onChange={(e) => handleChange("openai_api_key", e.target.value)}
+              disabled={saving === "openai_api_key"}
+            />
+          </SettingRow>
+        )}
       </div>
 
       <ProjectTagsPanel />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Zap, LayoutDashboard, Settings, Sun, Moon, AlertTriangle, Activity, Sparkles, Trophy, BarChart2 } from "lucide-react";
+import { Zap, LayoutDashboard, Settings, Sun, Moon, AlertTriangle, Activity, Sparkles, Trophy, BarChart2, Target } from "lucide-react";
 
 import { TrackingToggle } from "./components/TrackingToggle";
 import { ActivityTimeline } from "./components/ActivityTimeline";
@@ -13,6 +13,7 @@ import { SetupWizard } from "./components/SetupWizard";
 import { ExportPanel } from "./components/ExportPanel";
 import { LiveView } from "./components/LiveView";
 import { FocusScore } from "./components/FocusScore";
+import { AICoach } from "./components/AICoach";
 import { useTracking, useActivities, useConfig } from "./hooks/useTauri";
 
 import type { AppInfo } from "./lib/types";
@@ -22,13 +23,14 @@ import { getTodayDate } from "./lib/utils";
 import "./styles/globals.css";
 import "./styles/dashboard.css";
 import "./styles/consent.css";
+import "./styles/ai-coach.css";
 import { WeeklyTrends } from "./components/WeeklyTrends";
 import { WeeklyInsightsPanel } from "./components/WeeklyInsightsPanel";
 import { GamificationDashboard } from "./components/GamificationDashboard";
 import "./styles/focus-score.css";
 import "./styles/weekly-trends.css";
 
-type View = "dashboard" | "trends" | "settings" | "consent" | "setup" | "live" | "insights" | "rewards";
+type View = "dashboard" | "trends" | "settings" | "consent" | "setup" | "live" | "insights" | "rewards" | "coach";
 
 /**
  * Root application component.
@@ -38,6 +40,7 @@ type View = "dashboard" | "trends" | "settings" | "consent" | "setup" | "live" |
  */
 function App() {
   const [view, setView] = useState<View>("dashboard");
+// ... (rest of state logic)
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(() => {
@@ -137,6 +140,12 @@ function App() {
             <Trophy size={18} /> Rewards
           </button>
           <button
+            className={`dashboard__nav-btn ${view === "coach" ? "dashboard__nav-btn--active" : ""}`}
+            onClick={() => setView("coach")}
+          >
+            <Target size={18} /> Coach
+          </button>
+          <button
             className={`dashboard__nav-btn ${view === "settings" ? "dashboard__nav-btn--active" : ""}`}
             onClick={() => setView("settings")}
           >
@@ -199,11 +208,9 @@ function App() {
         )}
 
         {view === "trends" && <WeeklyTrends />}
-        
         {view === "insights" && <WeeklyInsightsPanel />}
-
         {view === "rewards" && <GamificationDashboard />}
-
+        {view === "coach" && <AICoach />}
         {view === "settings" && <SettingsPanel config={config} onUpdate={updateConfig} />}
       </div>
 
