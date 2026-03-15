@@ -236,6 +236,68 @@ fn score_color(score: i64) -> String {
     }
 }
 
+/// Generate AI-powered daily coach tips.
+pub async fn generate_daily_coach_tips(
+    activities: &[ActivityLog],
+    llm: &super::llm::LlmClient,
+) -> Result<String, super::errors::AiError> {
+    if activities.is_empty() {
+        return Ok("### Start Tracking\nTrack your work today to receive personalized coaching tips tomorrow!".to_string());
+    }
+
+    if llm.provider() == &super::llm::AiProvider::RuleBased {
+        return Ok(generate_fallback_tips(activities));
+    }
+
+    let summary = activities
+        .iter()
+        .take(20) // Just a sample for context
+        .map(|a| format!("- {} ({}s): {}", a.app_name, a.duration_seconds, a.window_title.as_deref().unwrap_or("")))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let prompt = format!(
+        "You are an elite productivity coach. Based on these recent work activities, provide 3 tactical, actionable tips to improve tomorrow's performance. 
+        Format your response exactly as follows:
+        ### [Tip Title]
+        [Brief Tip Content]
+        
+        Activities:
+        {}",
+        summary
+    );
+
+    llm.complete(&prompt).await
+}
+
+fn generate_fallback_tips(activities: &[ActivityLog]) -> String {
+    // Basic heuristics for fallback
+    let total_duration: i64 = activities.iter().map(|a| a.duration_seconds).sum();
+    let meeting_duration: i64 = activities
+        .iter()
+        .filter(|a| a.is_meeting)
+        .map(|a| a.duration_seconds)
+        .sum();
+
+    let mut tips = Vec::new();
+
+    if total_duration > 8 * 3600 {
+        tips.push("### Watch for Burnout\nYou've logged over 8 hours of active work. Consider a strictly offline evening to recharge.");
+    } else {
+        tips.push("### Goal Calibration\nReview your core objectives. Are your logged activities aligned with your top 3 priorities?");
+    }
+
+    if meeting_duration > 3 * 3600 {
+        tips.push("### Meeting Recovery\nYou spent significant time in meetings. Schedule a 90-minute 'No-Meeting' block tomorrow for deep work.");
+    } else {
+        tips.push("### Deep Work Opportunity\nWith few meetings logged, tomorrow is perfect for a multi-hour deep work session on a complex task.");
+    }
+
+    tips.push("### Environment Audit\nSmall changes to your workspace can lead to big focus gains. Try clearing your physical desk before starting tomorrow.");
+
+    tips.join("\n\n")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,0 +1,180 @@
+/* ============================================
+   Gamification — Player Profile & Achievements
+   ============================================ */
+
+.gamification-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ─── Profile Section ─── */
+.gamification__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.profile__avatar {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--color-primary), #3370ff);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(120, 69, 240, 0.3);
+}
+
+.profile__info {
+  flex: 1;
+}
+
+.profile__name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-1);
+}
+
+.profile__level-tag {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  background: rgba(120, 69, 240, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* ─── Level Progress ─── */
+.gamification__level-progress {
+  margin-top: var(--space-4);
+}
+
+.level-progress__info {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-2);
+}
+
+.level-progress__track {
+  height: 12px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.level-progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), #3370ff);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px rgba(120, 69, 240, 0.5);
+  transition: width 1s ease-out;
+}
+
+/* ─── Stats Grid ─── */
+.gamification__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-4);
+}
+
+.gamification__stat-card {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gamification__stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card__value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.stat-card__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Achievements ─── */
+.gamification__achievements {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.achievement-card {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.achievement-card--locked {
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+
+.achievement-card:hover:not(.achievement-card--locked) {
+  transform: scale(1.02);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.achievement-card__icon {
+  width: 48px;
+  height: 48px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xl);
+}
+
+.achievement-card__info {
+  flex: 1;
+}
+
+.achievement-card__title {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  margin-bottom: 2px;
+}
+
+.achievement-card__desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.achievement-card__rarity {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.achievement-card__rarity--common { color: #888; background: rgba(136, 136, 136, 0.1); }
+.achievement-card__rarity--rare { color: #3370ff; background: rgba(51, 112, 255, 0.1); }
+.achievement-card__rarity--epic { color: #7845f0; background: rgba(120, 69, 240, 0.1); }
+.achievement-card__rarity--legendary { color: #ff9d00; background: rgba(255, 157, 0, 0.1); }

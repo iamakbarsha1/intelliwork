@@ -7,6 +7,8 @@
 // Each command accesses shared state via `tauri::State<AppState>`.
 
 use tauri::State;
+use chrono::Utc;
+use uuid::Uuid;
 
 use crate::state::AppState;
 use crate::tracker::TrackingState;
@@ -123,9 +125,63 @@ pub async fn generate_weekly_insights(
         }
     };
 
+    let llm = crate::ai::llm::LlmClient::new(config.clone());
+
+    let raw_insight = crate::ai::summarizer::SummaryGenerator::generate_weekly_insights(&activities, &llm)
+        .await
+        .map_err(|e| format!("AI error: {}", e))?;
+
+    // Persist it
+    let insight = crate::storage::WeeklyInsight {
+        id: uuid::Uuid::new_v4().to_string(),
+        week_start_date: start_date,
+        raw_insight: raw_insight.clone(),
+        ai_provider: Some(format!("{:?}", config.provider)),
+        created_at: Some(chrono::Utc::now().to_rfc3339()),
+    };
+
+    state
+        .db
+        .upsert_weekly_insight(&insight)
+        .map_err(|e| format!("DB error: {}", e))?;
+
+    Ok(raw_insight)
+}
+
+/// Generate AI daily coach tips
+#[tauri::command]
+pub async fn generate_daily_coach_tips(
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    // Get yesterday's date
+    let yesterday = chrono::Utc::now() - chrono::Duration::days(1);
+    let date_str = yesterday.format("%Y-%m-%d").to_string();
+
+    let activities = state
+        .db
+        .get_activities_for_date(&date_str)
+        .map_err(|e| format!("DB error: {}", e))?;
+
+    let config = {
+        let ai_provider_str = state
+            .db
+            .get_config("ai_provider")
+            .unwrap_or(None)
+            .unwrap_or_else(|| "rule_based".to_string());
+        
+        let api_key = state.db.get_config("ai_api_key").unwrap_or(None);
+
+        crate::ai::llm::LlmConfig {
+            provider: crate::ai::llm::AiProvider::from_str_safe(&ai_provider_str),
+            api_key,
+            model: "gpt-4o-mini".to_string(),
+            ..Default::default()
+        }
+    };
+
     let llm = crate::ai::llm::LlmClient::new(config);
 
-    crate::ai::summarizer::SummaryGenerator::generate_weekly_insights(&activities, &llm)
+    crate::ai::coach::generate_daily_coach_tips(&activities, &llm)
         .await
         .map_err(|e| format!("AI error: {}", e))
 }
@@ -305,5 +361,43 @@ pub fn insert_project_tag(
     tracker.reload_project_tags()?;
 
     Ok(())
+}
+
+/// Get aggregated gamification data (streak and achievements).
+#[tauri::command]
+pub fn get_gamification_data(
+    state: State<'_, AppState>,
+) -> Result<crate::storage::GamificationData, String> {
+    state
+        .db
+        .get_gamification_data()
+        .map_err(|e| format!("DB error: {}", e))
+}
+
+/// Get a weekly insight record for a given week start date.
+#[tauri::command]
+pub fn get_weekly_insight(
+    state: State<'_, AppState>,
+    week_start: String,
+) -> Result<Option<crate::storage::WeeklyInsight>, String> {
+    state
+        .db
+        .get_weekly_insight(&week_start)
+        .map_err(|e| format!("DB error: {}", e))
+}
+
+/// Manually insert an achievement (e.g. from UI or background checks).
+#[tauri::command]
+pub fn insert_achievement(
+    state: State<'_, AppState>,
+    name: String,
+    achievement_type: String,
+    value: i64,
+) -> Result<(), String> {
+    let achievement = crate::storage::Achievement::new(&achievement_type, &name, value);
+    state
+        .db
+        .insert_achievement(&achievement)
+        .map_err(|e| format!("DB error: {}", e))
 }
 

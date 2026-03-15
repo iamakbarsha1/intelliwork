@@ -197,3 +197,53 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* ─── Level Badge (Gamification) ─── */
+.focus-score__level-badge {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: linear-gradient(135deg, rgba(120, 69, 240, 0.1), rgba(51, 112, 255, 0.1));
+  border: 1px solid rgba(120, 69, 240, 0.2);
+  border-radius: var(--radius-lg);
+}
+
+.level-badge__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.level-badge__icon {
+  color: var(--color-primary);
+}
+
+.level-badge__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  flex: 1;
+}
+
+.level-badge__points {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: rgba(120, 69, 240, 0.1);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.level-badge__progress-track {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.level-badge__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), #3370ff);
+  border-radius: var(--radius-full);
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}

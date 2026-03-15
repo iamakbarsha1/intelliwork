@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Zap, LayoutDashboard, Settings, Sun, Moon, AlertTriangle, Activity } from "lucide-react";
+import { Zap, LayoutDashboard, Settings, Sun, Moon, AlertTriangle, Activity, Sparkles, Trophy, BarChart2, Target } from "lucide-react";
 
 import { TrackingToggle } from "./components/TrackingToggle";
 import { ActivityTimeline } from "./components/ActivityTimeline";
@@ -13,6 +13,7 @@ import { SetupWizard } from "./components/SetupWizard";
 import { ExportPanel } from "./components/ExportPanel";
 import { LiveView } from "./components/LiveView";
 import { FocusScore } from "./components/FocusScore";
+import { AICoach } from "./components/AICoach";
 import { useTracking, useActivities, useConfig } from "./hooks/useTauri";
 
 import type { AppInfo } from "./lib/types";
@@ -22,11 +23,14 @@ import { getTodayDate } from "./lib/utils";
 import "./styles/globals.css";
 import "./styles/dashboard.css";
 import "./styles/consent.css";
+import "./styles/ai-coach.css";
 import { WeeklyTrends } from "./components/WeeklyTrends";
+import { WeeklyInsightsPanel } from "./components/WeeklyInsightsPanel";
+import { GamificationDashboard } from "./components/GamificationDashboard";
 import "./styles/focus-score.css";
 import "./styles/weekly-trends.css";
 
-type View = "dashboard" | "trends" | "settings" | "consent" | "setup" | "live";
+type View = "dashboard" | "trends" | "settings" | "consent" | "setup" | "live" | "insights" | "rewards" | "coach";
 
 /**
  * Root application component.
@@ -35,7 +39,8 @@ type View = "dashboard" | "trends" | "settings" | "consent" | "setup" | "live";
  * daily summary, tracking toggle, and settings panel.
  */
 function App() {
-  const [view, setView] = useState<View>("live");
+  const [view, setView] = useState<View>("dashboard");
+// ... (rest of state logic)
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(() => {
@@ -120,7 +125,25 @@ function App() {
             className={`dashboard__nav-btn ${view === "trends" ? "dashboard__nav-btn--active" : ""}`}
             onClick={() => setView("trends")}
           >
-            <Activity size={18} /> Trends
+            <BarChart2 size={18} /> Trends
+          </button>
+          <button
+            className={`dashboard__nav-btn ${view === "insights" ? "dashboard__nav-btn--active" : ""}`}
+            onClick={() => setView("insights")}
+          >
+            <Sparkles size={18} /> Insights
+          </button>
+          <button
+            className={`dashboard__nav-btn ${view === "rewards" ? "dashboard__nav-btn--active" : ""}`}
+            onClick={() => setView("rewards")}
+          >
+            <Trophy size={18} /> Rewards
+          </button>
+          <button
+            className={`dashboard__nav-btn ${view === "coach" ? "dashboard__nav-btn--active" : ""}`}
+            onClick={() => setView("coach")}
+          >
+            <Target size={18} /> Coach
           </button>
           <button
             className={`dashboard__nav-btn ${view === "settings" ? "dashboard__nav-btn--active" : ""}`}
@@ -155,37 +178,41 @@ function App() {
       />
 
       {/* Main Content Area */}
-      {view === "live" && tracking.state && (
-        <LiveView activities={activities} tracking={tracking.state} />
-      )}
+      <div className="dashboard__content container">
+        {view === "live" && tracking.state && (
+          <LiveView activities={activities} tracking={tracking.state} />
+        )}
 
-      {view === "dashboard" ? (
-          <div className="dashboard-grid">
-            {/* Left Column: Summary + Daily Stats */}
-            <div className="dashboard-column">
-              <ExportPanel date={today} />
-              <FocusScore activities={activities} />
-              <DailySummary date={today} activities={activities} />
-              <CategoryChart activities={activities} />
-              <ProjectBreakdown activities={activities} />
-            </div>
+        {view === "dashboard" && (
+            <div className="dashboard-grid">
+              {/* Left Column: Summary + Daily Stats */}
+              <div className="dashboard-column">
+                <ExportPanel date={today} />
+                <FocusScore activities={activities} />
+                <DailySummary date={today} activities={activities} />
+                <CategoryChart activities={activities} />
+                <ProjectBreakdown activities={activities} />
+              </div>
 
-            {/* Right Column: Timeline */}
-            <div className="dashboard-column">
-              <ActivityTimeline 
-                activities={activities} 
-                loading={activitiesLoading} 
-                onDelete={(id) => deleteActivities([id])}
-                onDeleteAll={() => deleteActivities(activities.map(a => a.id))}
-                onTagged={refreshActivities}
-              />
+              {/* Right Column: Timeline */}
+              <div className="dashboard-column">
+                <ActivityTimeline 
+                  activities={activities} 
+                  loading={activitiesLoading} 
+                  onDelete={(id) => deleteActivities([id])}
+                  onDeleteAll={() => deleteActivities(activities.map(a => a.id))}
+                  onTagged={refreshActivities}
+                />
+              </div>
             </div>
-          </div>
-      ) : view === "trends" ? (
-        <WeeklyTrends />
-      ) : (
-        <SettingsPanel config={config} onUpdate={updateConfig} />
-      )}
+        )}
+
+        {view === "trends" && <WeeklyTrends />}
+        {view === "insights" && <WeeklyInsightsPanel />}
+        {view === "rewards" && <GamificationDashboard />}
+        {view === "coach" && <AICoach />}
+        {view === "settings" && <SettingsPanel config={config} onUpdate={updateConfig} />}
+      </div>
 
       {/* Onboarding Overlays */}
       {!configLoading && config.onboarding_completed !== "true" && (

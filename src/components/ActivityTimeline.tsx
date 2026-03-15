@@ -45,6 +45,14 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll, o
 
   const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
 
+  // Extract unique projects for filter pills
+  const availableProjects = useMemo(() => {
+    const projs = new Set(activities.map(a => a.project).filter(Boolean));
+    return Array.from(projs).sort() as string[];
+  }, [activities]);
+
+  const [activeProjects, setActiveProjects] = useState<Set<string>>(new Set());
+
   // Toggle a category in the filter
   const toggleCategory = (cat: string) => {
     const next = new Set(activeCategories);
@@ -56,11 +64,25 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll, o
     setActiveCategories(next);
   };
 
+  // Toggle a project in the filter
+  const toggleProject = (proj: string) => {
+    const next = new Set(activeProjects);
+    if (next.has(proj)) {
+      next.delete(proj);
+    } else {
+      next.add(proj);
+    }
+    setActiveProjects(next);
+  };
+
   // 1. Filter activities
   const filteredActivities = useMemo(() => {
-    if (activeCategories.size === 0) return activities;
-    return activities.filter(a => activeCategories.has(a.category));
-  }, [activities, activeCategories]);
+    return activities.filter(a => {
+      const catMatch = activeCategories.size === 0 || activeCategories.has(a.category);
+      const projMatch = activeProjects.size === 0 || (a.project && activeProjects.has(a.project));
+      return catMatch && projMatch;
+    });
+  }, [activities, activeCategories, activeProjects]);
 
   // 2. Process data based on ViewMode
   const hourlyGroups = useMemo<HourlyGroup[]>(() => {
@@ -198,31 +220,51 @@ export function ActivityTimeline({ activities, loading, onDelete, onDeleteAll, o
         </div>
 
         {/* Filter Pills */}
-        {availableCategories.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-            {availableCategories.map(cat => {
-              const isActive = activeCategories.has(cat);
-              const color = getCategoryColor(cat);
-              return (
-                <button
-                  key={cat}
-                  onClick={() => toggleCategory(cat)}
-                  className="badge"
-                  style={{
-                    cursor: "pointer",
-                    border: `1px solid ${isActive ? color : "var(--color-border)"}`,
-                    backgroundColor: isActive ? `${color}20` : "transparent",
-                    color: isActive ? color : "var(--text-secondary)",
-                    opacity: activeCategories.size === 0 || isActive ? 1 : 0.5,
-                    transition: "all 0.2s"
-                  }}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
-        )}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
+          {availableCategories.length > 0 && availableCategories.map(cat => {
+            const isActive = activeCategories.has(cat);
+            const color = getCategoryColor(cat);
+            return (
+              <button
+                key={cat}
+                onClick={() => toggleCategory(cat)}
+                className="badge"
+                style={{
+                  cursor: "pointer",
+                  border: `1px solid ${isActive ? color : "var(--color-border)"}`,
+                  backgroundColor: isActive ? `${color}20` : "transparent",
+                  color: isActive ? color : "var(--text-secondary)",
+                  opacity: activeCategories.size === 0 || isActive ? 1 : 0.5,
+                  transition: "all 0.2s"
+                }}
+              >
+                {cat}
+              </button>
+            );
+          })}
+          
+          {availableProjects.length > 0 && availableProjects.map(proj => {
+            const isActive = activeProjects.has(proj);
+            const color = "var(--color-info)"; // Teal for projects
+            return (
+              <button
+                key={proj}
+                onClick={() => toggleProject(proj)}
+                className="badge"
+                style={{
+                  cursor: "pointer",
+                  border: `1px solid ${isActive ? color : "var(--color-border)"}`,
+                  backgroundColor: isActive ? `${color}20` : "transparent",
+                  color: isActive ? color : "var(--text-secondary)",
+                  opacity: activeProjects.size === 0 || isActive ? 1 : 0.5,
+                  transition: "all 0.2s"
+                }}
+              >
+                🏷️ {proj}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {filteredActivities.length === 0 ? (
