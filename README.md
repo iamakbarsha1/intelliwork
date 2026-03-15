@@ -52,6 +52,13 @@
 - **⏰ Office Hours Control** — Configurable tracking window with automatic enable/disable
 - **🔐 Privacy-First Architecture** — All data encrypted locally, no central server, full user control
 
+### Advanced Features
+
+- **🏆 Gamification System** — Earn achievements and maintain streaks for focus and productivity targets.
+- **🧠 AI Productivity Coach** — Personalized daily tips and focus insights based on your work patterns.
+- **📈 Weekly Trend Analysis** — AI-generated reports that identify deep work patterns and meeting overhead.
+- **🥇 Focus Scoring** — Dynamic focus score calculated in real-time based on activity classification.
+
 ### User Controls
 
 - **Toggle Tracking** — One-click enable/disable from system tray
@@ -60,6 +67,7 @@
 - **Edit Summaries** — Manually refine AI-generated activity descriptions
 - **Delete Data** — Full control over stored activity logs
 - **Consent Dashboard** — Transparent view of all tracked data categories
+- **Achievement Gallery** — Track your productivity milestones and collect badges.
 
 ---
 
